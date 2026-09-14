@@ -1128,18 +1128,7 @@ export function UnitReportsClientView({
                         </div>
                       </div>
 
-                      {/* Breakdown bar */}
-                      <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                        <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-900">
-                          <span className="text-[10px] text-blue-600 block font-semibold">ĐH Mới</span>
-                          <span className="font-mono font-bold text-sm">{unitTotalNew.toLocaleString()} cái</span>
-                        </div>
-                        <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-900">
-                          <span className="text-[10px] text-emerald-600 block font-semibold">ĐH Xưởng Sửa</span>
-                          <span className="font-mono font-bold text-sm">{unitTotalCirc.toLocaleString()} cái</span>
-                        </div>
-                      </div>
-
+                      {/* Meter list */}
                       {activeMeters.length === 0 ? (
                         <p className="text-xs text-slate-400 italic py-4 text-center">
                           Chưa phát sinh xuất kho trong đợt này.
