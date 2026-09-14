@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { PrintVoucherModal, VoucherPrintData } from '@/components/vouchers/PrintVoucherModal';
 import { ParticipantSelect } from '@/components/vouchers/ParticipantSelect';
+import { MeterNoteCombobox } from '@/components/vouchers/MeterNoteCombobox';
 import type { SessionUser } from '@/types';
 
 interface Unit {
@@ -332,12 +333,12 @@ export function DistributionClientView({
             >
               {units.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.displayName} ({u.type})
+                  {u.displayName || u.name}
                 </option>
               ))}
             </select>
             <p className="text-[11px] text-slate-500 mt-1">
-              Địa bàn bàn giao: <span className="font-semibold text-slate-700">{selectedUnit.displayName}</span>
+              Địa bàn bàn giao: <span className="font-semibold text-slate-700">{selectedUnit.displayName || selectedUnit.name}</span>
             </p>
           </div>
 
@@ -470,6 +471,16 @@ export function DistributionClientView({
                       </button>
                     </div>
 
+                    {/* Ghi chú dòng */}
+                    <div className="px-0.5">
+                      <MeterNoteCombobox
+                        value={row.notes || ''}
+                        onChange={(val) => handleItemChange(idx, 'notes', val)}
+                        placeholder="Ghi chú / Mục đích xuất (chọn nhanh hoặc tự nhập)..."
+                        className="w-full"
+                      />
+                    </div>
+
                     <div className="flex justify-between items-center text-[11px] px-1">
                       <span className="text-slate-500">
                         Tồn khả dụng tại Kho VP ({row.meterStatus === 'new' ? 'Mới 100%' : 'Xưởng sửa'}):
@@ -547,7 +558,7 @@ export function DistributionClientView({
                         {v.code}
                       </span>
                       <span className="ml-2 font-bold text-slate-900">
-                        ➔ {v.destinationUnit?.name?.replace('Chi nhánh Cấp nước', 'CN Cấp nước')?.replace('Xí nghiệp Cấp nước', 'XN Cấp nước')}
+                        ➔ {v.destinationUnit?.name || 'Đơn vị tiếp nhận'}
                       </span>
                     </div>
 
@@ -786,63 +797,78 @@ export function DistributionClientView({
 
                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                   {editItems.map((row, idx) => (
-                    <div key={idx} className="flex gap-2 items-center bg-slate-50 p-2.5 rounded-lg border text-xs">
-                      <div className="flex-1">
-                        <select
-                          value={row.meterId}
-                          onChange={(e) => {
-                            const updated = [...editItems];
-                            updated[idx].meterId = Number(e.target.value);
-                            setEditItems(updated);
-                          }}
-                          className="w-full text-xs border rounded p-1.5 bg-white font-medium"
+                    <div key={idx} className="bg-slate-50 p-2.5 rounded-lg border text-xs space-y-2">
+                      {/* Row 1: controls */}
+                      <div className="flex gap-2 items-center">
+                        <div className="flex-1">
+                          <select
+                            value={row.meterId}
+                            onChange={(e) => {
+                              const updated = [...editItems];
+                              updated[idx].meterId = Number(e.target.value);
+                              setEditItems(updated);
+                            }}
+                            className="w-full text-xs border rounded p-1.5 bg-white font-medium"
+                          >
+                            {meters.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                [{m.code}] {m.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="w-32">
+                          <select
+                            value={row.meterStatus}
+                            onChange={(e) => {
+                              const updated = [...editItems];
+                              updated[idx].meterStatus = e.target.value as any;
+                              setEditItems(updated);
+                            }}
+                            className="w-full text-xs border rounded p-1.5 bg-white font-semibold text-brand-700"
+                          >
+                            <option value="new">Mới 100%</option>
+                            <option value="circulating">Quay vòng (SC)</option>
+                          </select>
+                        </div>
+
+                        <div className="w-24">
+                          <input
+                            type="number"
+                            min={1}
+                            value={row.quantity}
+                            onChange={(e) => {
+                              const updated = [...editItems];
+                              updated[idx].quantity = Number(e.target.value);
+                              setEditItems(updated);
+                            }}
+                            placeholder="Số lượng"
+                            className="w-full text-xs border rounded p-1.5 text-right font-bold"
+                            required
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditItems(editItems.filter((_, i) => i !== idx))}
+                          className="p-1 text-slate-400 hover:text-red-600 rounded"
                         >
-                          {meters.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              [{m.code}] {m.name}
-                            </option>
-                          ))}
-                        </select>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
 
-                      <div className="w-32">
-                        <select
-                          value={row.meterStatus}
-                          onChange={(e) => {
-                            const updated = [...editItems];
-                            updated[idx].meterStatus = e.target.value as any;
-                            setEditItems(updated);
-                          }}
-                          className="w-full text-xs border rounded p-1.5 bg-white font-semibold text-brand-700"
-                        >
-                          <option value="new">Mới 100%</option>
-                          <option value="circulating">Quay vòng (SC)</option>
-                        </select>
-                      </div>
-
-                      <div className="w-24">
-                        <input
-                          type="number"
-                          min={1}
-                          value={row.quantity}
-                          onChange={(e) => {
-                            const updated = [...editItems];
-                            updated[idx].quantity = Number(e.target.value);
-                            setEditItems(updated);
-                          }}
-                          placeholder="Số lượng"
-                          className="w-full text-xs border rounded p-1.5 text-right font-bold"
-                          required
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setEditItems(editItems.filter((_, i) => i !== idx))}
-                        className="p-1 text-slate-400 hover:text-red-600 rounded"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {/* Row 2: ghi chú dòng */}
+                      <MeterNoteCombobox
+                        value={row.notes || ''}
+                        onChange={(val) => {
+                          const updated = [...editItems];
+                          updated[idx].notes = val;
+                          setEditItems(updated);
+                        }}
+                        placeholder="Ghi chú / Mục đích xuất dòng này..."
+                        className="w-full"
+                      />
                     </div>
                   ))}
                 </div>
