@@ -202,11 +202,12 @@ export async function dispatchMultipleMetersToUnit(data: {
     });
   });
 
-  revalidatePath('/distribution');
-  revalidatePath('/inventory');
-  revalidatePath('/reports');
-  revalidatePath('/unit-reports');
-  revalidatePath('/');
+  try {
+    revalidatePath('/distribution');
+    revalidatePath('/');
+  } catch (e) {
+    // Ignore
+  }
   return { success: true, code };
 }
 
@@ -261,11 +262,12 @@ export async function deleteExportVoucher(id: number) {
     await tx.exportVoucher.delete({ where: { id } });
   });
 
-  revalidatePath('/distribution');
-  revalidatePath('/inventory');
-  revalidatePath('/reports');
-  revalidatePath('/unit-reports');
-  revalidatePath('/');
+  try {
+    revalidatePath('/distribution');
+    revalidatePath('/');
+  } catch (e) {
+    // Ignore
+  }
   return { success: true };
 }
 

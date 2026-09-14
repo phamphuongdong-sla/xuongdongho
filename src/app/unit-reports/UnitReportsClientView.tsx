@@ -702,7 +702,7 @@ export function UnitReportsClientView({
                     }`}
                   >
                     <LayoutGrid className="w-4 h-4 text-emerald-600" />
-                    Thẻ Sổ Kho 12 Đơn Vị
+                    Sổ chi tiết xuất (tháng)
                   </button>
                 </div>
               </div>
@@ -793,7 +793,7 @@ export function UnitReportsClientView({
             <div className="flex justify-between items-center text-[11px] pt-2 border-t border-slate-100 text-slate-500">
               <span>
                 {displayMode === 'matrix' && '💡 Bảng 2 chiều: Hàng dọc là các loại ĐH, Hàng ngang là 12 Đơn vị. Dễ đối soát nhất.'}
-                {displayMode === 'cards' && '💡 Dạng thẻ: Mỗi chi nhánh 1 thẻ riêng, liệt kê các loại đồng hồ đơn vị đó đã nhận.'}
+                {displayMode === 'cards' && '💡 Sổ chi tiết: Mỗi chi nhánh 1 sổ riêng, liệt kê chi tiết các loại đồng hồ đơn vị đó đã nhận.'}
                 {displayMode === 'timeline' && '💡 Tiến độ: Soi chi tiết từng tháng từ Tháng 1 đến Tháng 12 cho từng mã đồng hồ.'}
               </span>
               <span className="text-emerald-700 font-semibold">
@@ -1070,7 +1070,7 @@ export function UnitReportsClientView({
           {displayMode === 'cards' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center text-xs text-slate-500">
-                <span>Hiển thị 12 chi nhánh / xí nghiệp dạng thẻ sổ kho</span>
+                <span>Sổ chi tiết xuất theo từng chi nhánh / xí nghiệp (tháng)</span>
                 <span className="font-semibold text-brand-700">
                   Kỳ: {selectedMonth === 'all' ? `Cả Năm ${selectedYear}` : `${selectedMonth} / Năm ${selectedYear}`}
                 </span>
@@ -1580,7 +1580,7 @@ export function UnitReportsClientView({
                     }`}
                   >
                     <LayoutGrid className="w-4 h-4 text-emerald-600" />
-                    Thẻ Chi Nhánh Chuyển Về
+                    Sổ chi tiết nhập (tháng)
                   </button>
                 </div>
               </div>

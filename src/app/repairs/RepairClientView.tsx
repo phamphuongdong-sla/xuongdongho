@@ -240,6 +240,11 @@ export function RepairClientView({
         ? await updateRepairVoucher({ id: editingVoucherId, ...repairData })
         : await submitRepairVoucher(repairData);
 
+      if (!res.success) {
+        setMessage({ type: 'error', text: res.error || 'Lỗi khi lưu phiếu sửa chữa' });
+        return;
+      }
+
       setMessage({
         type: 'success',
         text: editingVoucherId
@@ -262,7 +267,11 @@ export function RepairClientView({
     if (!confirm(`Bạn có chắc muốn xóa phiếu sửa chữa ${code}? Toàn bộ linh kiện đã dùng sẽ được hoàn trả vào kho xưởng và trừ số đồng hồ quay vòng đã nhập.`)) return;
     setLoading(true);
     try {
-      await deleteRepairVoucher(id);
+      const res = await deleteRepairVoucher(id);
+      if (!res.success) {
+        setMessage({ type: 'error', text: res.error || 'Lỗi khi xóa phiếu sửa chữa' });
+        return;
+      }
       setMessage({ type: 'success', text: `Đã xóa phiếu ${code} và hoàn tác tồn kho thành công!` });
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
@@ -274,7 +283,11 @@ export function RepairClientView({
   const handleSaveNotes = async (id: number) => {
     setLoading(true);
     try {
-      await updateRepairVoucherNotes(id, editingNotes);
+      const res = await updateRepairVoucherNotes(id, editingNotes);
+      if (!res.success) {
+        setMessage({ type: 'error', text: res.error || 'Lỗi khi cập nhật ghi chú' });
+        return;
+      }
       setMessage({ type: 'success', text: 'Đã cập nhật ghi chú phiếu sửa chữa thành công!' });
       setEditingVoucherId(null);
     } catch (err: any) {
@@ -384,6 +397,11 @@ export function RepairClientView({
         quantity: suppQuantity,
         notes: suppNotes,
       });
+
+      if (!res.success) {
+        setMessage({ type: 'error', text: res.error || 'Lỗi khi lưu phiếu xuất bổ sung' });
+        return;
+      }
 
       setMessage({
         type: 'success',

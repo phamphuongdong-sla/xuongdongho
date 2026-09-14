@@ -140,11 +140,12 @@ export async function deleteContract(id: number) {
     await tx.contract.delete({ where: { id } });
   });
 
-  revalidatePath('/contracts');
-  revalidatePath('/inventory');
-  revalidatePath('/reports');
-  revalidatePath('/unit-reports');
-  revalidatePath('/');
+  try {
+    revalidatePath('/contracts');
+    revalidatePath('/');
+  } catch (e) {
+    // Ignore
+  }
   return { success: true };
 }
 
@@ -328,11 +329,12 @@ export async function importBatchGoods(data: {
     });
   });
 
-  revalidatePath('/contracts');
-  revalidatePath('/inventory');
-  revalidatePath('/reports');
-  revalidatePath('/unit-reports');
-  revalidatePath('/');
+  try {
+    revalidatePath('/contracts');
+    revalidatePath('/');
+  } catch (e) {
+    // Ignore
+  }
   return { success: true, code };
 }
 
