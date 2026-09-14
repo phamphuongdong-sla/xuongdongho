@@ -47,9 +47,10 @@ export function UsedMetersClientView({
   vouchers,
   currentUser,
 }: UsedMetersClientViewProps) {
-  const isAdmin = currentUser?.role === 'admin';
-  const isKho = currentUser?.role === 'kho' || isAdmin;
+  const isAdmin = currentUser ? (currentUser.role === 'admin' || currentUser.originalRole === 'admin') : true;
+  const isKho = currentUser ? (currentUser.role === 'kho' || isAdmin) : true;
   const canEdit = isKho;
+  const canDelete = isKho;
 
   // Filter 12 destination/source units (exclude KHO-VP if preferred, or include)
   const branchUnits = units.filter((u) => u.code !== 'KHO-VP');
@@ -717,7 +718,7 @@ export function UsedMetersClientView({
                         )}
 
                         {/* Delete Button */}
-                        {isAdmin && (
+                        {canDelete && (
                           <button
                             type="button"
                             onClick={() => handleDelete(v.id, v.code)}

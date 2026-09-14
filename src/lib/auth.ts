@@ -77,10 +77,14 @@ export async function requireAuth(allowedRoles?: UserRole[]): Promise<SessionUse
     throw new Error('Unauthorized: Vui lòng đăng nhập để thực hiện thao tác này');
   }
 
-  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    throw new Error(
-      `Forbidden: Bạn không có quyền thực hiện thao tác này (yêu cầu vai trò: ${allowedRoles.join(', ')})`
-    );
+  if (allowedRoles && allowedRoles.length > 0) {
+    const hasDirectRole = allowedRoles.includes(user.role);
+    const isOriginalAdmin = user.originalRole === 'admin';
+    if (!hasDirectRole && !isOriginalAdmin) {
+      throw new Error(
+        `Forbidden: Bạn không có quyền thực hiện thao tác này (yêu cầu vai trò: ${allowedRoles.join(', ')})`
+      );
+    }
   }
 
   return user;

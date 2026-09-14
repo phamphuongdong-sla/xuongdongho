@@ -211,7 +211,7 @@ export async function dispatchMultipleMetersToUnit(data: {
 }
 
 export async function deleteExportVoucher(id: number) {
-  await requireAuth(['admin']);
+  await requireAuth(['admin', 'kho']);
   await prisma.$transaction(async (tx) => {
     const voucher = await tx.exportVoucher.findUnique({
       where: { id },

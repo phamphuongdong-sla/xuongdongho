@@ -78,8 +78,9 @@ export function ContractsClientView({
   employees?: any[];
   currentUser?: SessionUser | null;
 }) {
-  const isAdmin = currentUser ? currentUser.role === 'admin' : true;
-  const canEdit = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'kho') : true;
+  const isAdmin = currentUser ? (currentUser.role === 'admin' || currentUser.originalRole === 'admin') : true;
+  const canEdit = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'kho' || currentUser.originalRole === 'admin') : true;
+  const canDelete = canEdit;
 
   const [selectedContractId, setSelectedContractId] = useState<number>(contracts[0]?.id || 1);
 
@@ -528,7 +529,7 @@ export function ContractsClientView({
                     <Edit2 className="w-3.5 h-3.5" /> Sửa
                   </button>
                 )}
-                {isAdmin && (
+                {canDelete && (
                   <button
                     onClick={() => handleDeleteContract(selectedContract.id)}
                     className="p-1.5 rounded-md hover:bg-red-100 text-red-600 flex items-center gap-1 text-[11px] font-semibold"
@@ -608,7 +609,7 @@ export function ContractsClientView({
                           <Edit2 className="w-3 h-3" />
                         </button>
                       )}
-                      {isAdmin && (
+                      {canDelete && (
                         <button
                           onClick={() => handleDeleteBatch(b.id)}
                           className="p-1 hover:text-red-600 text-slate-400"
@@ -781,7 +782,7 @@ export function ContractsClientView({
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        {isAdmin && (
+                        {canDelete && (
                           <button
                             onClick={() => handleDeleteVoucher(imp.id, imp.code)}
                             className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"

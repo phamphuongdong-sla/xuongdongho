@@ -74,8 +74,9 @@ export function RepairClientView({
   currentUser?: SessionUser | null;
   initialMeterId?: number;
 }) {
-  const isAdmin = currentUser ? currentUser.role === 'admin' : true;
-  const canRepair = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'ktv') : true;
+  const isAdmin = currentUser ? (currentUser.role === 'admin' || currentUser.originalRole === 'admin') : true;
+  const canRepair = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'ktv' || currentUser.role === 'kho' || currentUser.originalRole === 'admin') : true;
+  const canDelete = canRepair;
 
   // Participant states for Mẫu 02-VT: Phiếu Xin Lĩnh Vật Tư
   const [creatorName, setCreatorName] = useState<string>('Lương Phương Thảo');
@@ -934,7 +935,7 @@ export function RepairClientView({
                         >
                           <Printer className="w-3 h-3" />
                         </button>
-                        {isAdmin && (
+                        {canDelete && (
                           <button
                             onClick={() => handleDeleteVoucher(v.id, v.code)}
                             className="p-1 text-slate-400 hover:text-red-600"

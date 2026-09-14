@@ -60,8 +60,9 @@ export function DistributionClientView({
   employees?: any[];
   currentUser?: SessionUser | null;
 }) {
-  const isAdmin = currentUser ? currentUser.role === 'admin' : true;
-  const canDispatch = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'kho') : true;
+  const isAdmin = currentUser ? (currentUser.role === 'admin' || currentUser.originalRole === 'admin') : true;
+  const canDispatch = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'kho' || currentUser.originalRole === 'admin') : true;
+  const canDelete = canDispatch;
 
   const [selectedUnitId, setSelectedUnitId] = useState<number>(units[0]?.id || 1);
   const [creatorName, setCreatorName] = useState<string>('Nguyễn Văn Tiến');
@@ -598,7 +599,7 @@ export function DistributionClientView({
                           <Edit2 className="w-3 h-3" />
                         </button>
                       )}
-                      {isAdmin && (
+                      {canDelete && (
                         <button
                           onClick={() => handleDeleteVoucher(v.id, v.code)}
                           className="p-1 text-slate-400 hover:text-red-600"

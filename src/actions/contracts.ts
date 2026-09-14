@@ -112,7 +112,7 @@ export async function updateContract(id: number, data: {
 }
 
 export async function deleteContract(id: number) {
-  await requireAuth(['admin']);
+  await requireAuth(['admin', 'kho']);
   // Delete associated batches and import vouchers
   await prisma.$transaction(async (tx) => {
     const vouchers = await tx.importVoucher.findMany({ where: { contractId: id } });
@@ -192,7 +192,7 @@ export async function updateContractBatch(id: number, data: {
 }
 
 export async function deleteContractBatch(id: number) {
-  await requireAuth(['admin']);
+  await requireAuth(['admin', 'kho']);
   await prisma.contractBatch.delete({ where: { id } });
   revalidatePath('/contracts');
   return { success: true };
@@ -337,7 +337,7 @@ export async function importBatchGoods(data: {
 }
 
 export async function deleteImportVoucher(id: number) {
-  await requireAuth(['admin']);
+  await requireAuth(['admin', 'kho']);
   await prisma.$transaction(async (tx) => {
     const voucher = await tx.importVoucher.findUnique({
       where: { id },

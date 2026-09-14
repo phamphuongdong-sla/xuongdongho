@@ -535,7 +535,7 @@ export async function submitSupplementRepairVoucher(data: {
 }
 
 export async function deleteRepairVoucher(id: number) {
-  await requireAuth(['admin']);
+  await requireAuth(['admin', 'ktv', 'kho']);
   await prisma.$transaction(async (tx) => {
     const voucher = await tx.repairVoucher.findUnique({
       where: { id },

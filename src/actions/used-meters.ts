@@ -296,7 +296,7 @@ export async function updateUsedMeterVoucher(
 }
 
 export async function deleteUsedMeterVoucher(voucherId: number) {
-  await requireAuth(['admin']);
+  await requireAuth(['admin', 'kho']);
 
   const khoVp = await prisma.unit.findFirst({
     where: { OR: [{ code: 'KHO-VP' }, { type: 'Kho/Xưởng' }, { sortOrder: 0 }] },
