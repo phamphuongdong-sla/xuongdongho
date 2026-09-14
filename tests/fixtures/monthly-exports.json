@@ -1,0 +1,170 @@
+[
+  {
+    "code": "ĐH015",
+    "name": "Đồng hồ D15",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 180.0
+  },
+  {
+    "code": "ĐH015(SC)",
+    "name": "Đồng hồ sửa chữa 015",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 920.0
+  },
+  {
+    "code": "ĐH015-CTOR",
+    "name": "Đồng hồ sửa chữa 015 đơn vị",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH015-TAC",
+    "name": "Đồng hồ Thái Aichi MAM-15 ( không kèm rắc co)",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH020",
+    "name": "Đồng hồ D20",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH025",
+    "name": "Đồng hồ D25",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH025(SC)",
+    "name": "Đồng hồ D25 (sửa chữa)",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH032",
+    "name": "Đồng hồ D32",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH032(SC)",
+    "name": "Đồng hồ D32 (sửa chữa)",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH040",
+    "name": "Đồng hồ D40",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 6.0
+  },
+  {
+    "code": "ĐH040(SC)",
+    "name": "Đồng hồ D40 (sửa chữa)",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 3.0
+  },
+  {
+    "code": "ĐH040-ĐLL",
+    "name": "Đồng hồ đo lưu lượng Turbobar hiệu Bermad DN40",
+    "unit": "Bộ",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH050",
+    "name": "Đồng hồ D50",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH050(SC)",
+    "name": "Đồng hồ D50 (sửa chữa)",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH050-BM",
+    "name": "Đồng hồ DN50 hiệu Bermad",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH065",
+    "name": "Đồng hồ D65",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH065-ĐLL",
+    "name": "Đồng hồ đo lưu lượng Turbobar hiệu Bermad DN65",
+    "unit": "Bộ",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH080",
+    "name": "Đồng hồ D80",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH100",
+    "name": "Đồng hồ D100",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 2.0
+  },
+  {
+    "code": "ĐH150",
+    "name": "Đồng hồ D150",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 1.0
+  },
+  {
+    "code": "ĐH150-CTOR",
+    "name": "Đồng hồ nước DN150 CONTOR-Metcon Qn=150m3/h, cấp B (Pvđ: 4,5-300m3/h)",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 0.0
+  },
+  {
+    "code": "ĐH200",
+    "name": "Đồng hồ D200",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 1.0
+  },
+  {
+    "code": "D25FLD",
+    "name": "Đồng hồ D25 Flodis",
+    "unit": "Cái",
+    "m1_circ": 0.0,
+    "m1_new": 5.0
+  },
+  {
+    "code": "D32FLD",
+    "name": "Đồng hồ D32 Flodis",
+    "unit": "Cái",
+    "m1_circ": 1.0,
+    "m1_new": 1.0
+  }
+]

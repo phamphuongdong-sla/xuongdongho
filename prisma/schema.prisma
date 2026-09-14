@@ -1,0 +1,541 @@
+// SOWASUCO Water Meter Management System (SOWASUCO WM)
+// Prisma Schema optimized for SQLite & Next.js App Router
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+// ============================================================================
+// 1. ĐƠN VỊ QUẢN LÝ (Kho VP, Xưởng Đồng hồ, 12 Chi nhánh/Xí nghiệp, Buffers)
+// ============================================================================
+model Unit {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // VD: KHO-VP, XNCN-TP01, XNCN-TP02, CNCN-MC...
+  name        String   // VD: Kho Văn phòng Công ty & Xưởng, XN Cấp nước TP1...
+  type        String   // "Kho/Xưởng", "Xí nghiệp", "Chi nhánh", "Dự phòng"
+  address     String?
+  phone       String?
+  email       String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users            User[]
+  inventories      Inventory[]
+  importVouchers   ImportVoucher[]   @relation("ImportDestinationUnit")
+  sourceImports    ImportVoucher[]   @relation("ImportSourceUnit")
+  employees        Employee[]
+  exportVouchers   ExportVoucher[]   @relation("ExportSourceUnit")
+  receivedExports  ExportVoucher[]   @relation("ExportDestinationUnit")
+  transfersFrom    TransferVoucher[] @relation("TransferFromUnit")
+  transfersTo      TransferVoucher[] @relation("TransferToUnit")
+  repairVouchers   RepairVoucher[]
+  meterInspections MeterInspection[]
+  alerts           Alert[]
+
+  @@index([code])
+  @@index([type])
+  @@index([sortOrder])
+}
+
+// ============================================================================
+// 2. NGƯỜI DÙNG & PHÂN QUYỀN
+// ============================================================================
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  department   String?
+  unitId       Int?
+  role         String    @default("kho") // "admin", "kho", "ktv"
+  isActive     Boolean   @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  unit             Unit?             @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  importVouchers   ImportVoucher[]
+  exportVouchers   ExportVoucher[]
+  transferVouchers TransferVoucher[]
+  createdRepairs   RepairVoucher[]   @relation("RepairCreator")
+  assignedRepairs  RepairVoucher[]   @relation("RepairTechnician")
+  inspections      MeterInspection[]
+  auditLogs        AuditLog[]
+
+  @@index([unitId])
+  @@index([role])
+}
+
+// ============================================================================
+// 3. DANH MỤC ĐỒNG HỒ NƯỚC (26 SKU)
+// ============================================================================
+model Meter {
+  id                Int      @id @default(autoincrement())
+  code              String   @unique // VD: ĐH015, ĐH015(SC), D25FLD, ĐH040...
+  name              String   // VD: Đồng hồ D15, Đồng hồ sửa chữa 015...
+  category          String   // "Tiêu chuẩn", "Sửa chữa", "Ngoại nhập"
+  size              String?  // "DN15", "DN20", "DN25", "DN32", "DN40", "DN50", "DN65", "DN80", "DN100", "DN150", "DN200"
+  unit              String   @default("Cái") // "Cái", "Bộ"
+  manufacturer      String?  // "Hawaco", "Flodis", "Bermad", "Metcon", "SOWASUCO"
+  yearManufacture   Int?
+  unitPrice         Float?   @default(0) // Giá mua / Giá tham chiếu
+  depreciationPrice Float?   @default(0) // Giá khấu hao
+  isActive          Boolean  @default(true)
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  sparePartsLink  MeterSparePart[]
+  inventories     Inventory[]
+  importDetails   ImportVoucherDetail[]
+  exportDetails   ExportVoucherDetail[]
+  transferDetails TransferVoucherDetail[]
+  repairVouchers  RepairVoucher[]
+  inspections     MeterInspection[]
+  alerts          Alert[]
+
+  @@index([category])
+  @@index([size])
+}
+
+// ============================================================================
+// 4. DANH MỤC VẬT TƯ LINH KIỆN (35 SKU)
+// ============================================================================
+model SparePart {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique // VD: VP-D15-001, VP-D15-002...
+  name      String   // VD: Nắp đồng hồ D15, Chụp xoay đồng hồ D15...
+  category  String   // "Nắp", "Chụp", "Mặt số", "Cánh quạt", "Buồng đo", "Gioăng", "Vít tinh chỉnh", "Ốc chặn", "Vành chống từ", "Lưới lọc"
+  size      String?  // "DN15", "DN25..DN32", "DN40..DN50", "Chung"
+  unit      String   @default("Cái")
+  unitPrice Float?   @default(0) // Đơn giá VNĐ (4,420đ - 791,000đ)
+  minStock  Int      @default(10) // Ngưỡng cảnh báo tồn kho thấp
+  isActive  Boolean  @default(true)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meterLinks      MeterSparePart[]
+  inventories     Inventory[]
+  importDetails   ImportVoucherDetail[]
+  exportDetails   ExportVoucherDetail[]
+  transferDetails TransferVoucherDetail[]
+  repairUsages    RepairVoucherSparePart[]
+  alerts          Alert[]
+
+  @@index([category])
+  @@index([size])
+}
+
+// ============================================================================
+// 5. ĐỊNH MỨC BOM (ĐỒNG HỒ - LINH KIỆN SỬA CHỮA)
+// ============================================================================
+model MeterSparePart {
+  id             Int      @id @default(autoincrement())
+  meterId        Int
+  sparePartId    Int
+  quantityPerSet Int      @default(1) // Số lượng linh kiện tiêu hao cho 1 đồng hồ
+  createdAt      DateTime @default(now())
+
+  meter     Meter     @relation(fields: [meterId], references: [id], onDelete: Cascade)
+  sparePart SparePart @relation(fields: [sparePartId], references: [id], onDelete: Cascade)
+
+  @@unique([meterId, sparePartId])
+  @@index([meterId])
+  @@index([sparePartId])
+}
+
+// ============================================================================
+// 6. HỢP ĐỒNG MUA SẮM LINH KIỆN / ĐỒNG HỒ
+// ============================================================================
+model Contract {
+  id             Int       @id @default(autoincrement())
+  contractNumber String    @unique // VD: HD-2026-LINHKIEN, HD-2026-HAWACO
+  title          String    // Tên gói thầu / Hợp đồng
+  supplierName   String    // Đơn vị cung cấp
+  signDate       DateTime?
+  totalValue     Float?    @default(0)
+  status         String    @default("active") // "active", "completed", "cancelled"
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  batches        ContractBatch[]
+  importVouchers ImportVoucher[]
+
+  @@index([status])
+  @@index([contractNumber])
+}
+
+// ============================================================================
+// 7. ĐỢT NHẬP THEO HỢP ĐỒNG (MULTI-BATCH PROCUREMENT)
+// ============================================================================
+model ContractBatch {
+  id           Int       @id @default(autoincrement())
+  contractId   Int
+  batchNumber  Int       // 1, 2, 3, 4...
+  batchName    String    // VD: "Đợt 1 - Tháng 01/2026"
+  expectedDate DateTime?
+  actualDate   DateTime?
+  status       String    @default("completed") // "pending", "delivering", "completed"
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  contract       Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  importVouchers ImportVoucher[]
+
+  @@unique([contractId, batchNumber])
+  @@index([contractId])
+  @@index([status])
+}
+
+// ============================================================================
+// 8. TỒN KHO THỜI GIAN THỰC (ĐỒNG HỒ & LINH KIỆN TẠI TỪNG ĐƠN VỊ)
+// ============================================================================
+model Inventory {
+  id          Int      @id @default(autoincrement())
+  unitId      Int
+  meterId     Int?
+  sparePartId Int?
+  quantity    Int      @default(0)
+  // Trạng thái đồng hồ: "new" (Mới), "circulating" (Quay vòng), "sent_for_repair" (Chờ sửa), "broken" (Hỏng/thanh lý)
+  // Trạng thái vật tư: mặc định "new" (Sẵn sàng xuất dùng)
+  status      String   @default("new")
+  lastUpdated DateTime @default(now()) @updatedAt
+
+  unit      Unit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  meter     Meter?     @relation(fields: [meterId], references: [id], onDelete: Cascade)
+  sparePart SparePart? @relation(fields: [sparePartId], references: [id], onDelete: Cascade)
+
+  @@unique([unitId, meterId, status])
+  @@unique([unitId, sparePartId, status])
+  @@index([unitId])
+  @@index([meterId])
+  @@index([sparePartId])
+  @@index([status])
+}
+
+// ============================================================================
+// 9. PHIẾU NHẬP KHO (NHẬP HỢP ĐỒNG, MUA MỚI, SỬA CHỮA HOÀN TẤT, ĐIỀU CHUYỂN)
+// ============================================================================
+model ImportVoucher {
+  id              Int       @id @default(autoincrement())
+  code            String    @unique // VD: PNK-2026-0001
+  voucherDate     DateTime
+  importReason    String    // "purchase_contract", "purchase_new", "repair_return", "transfer", "other"
+  contractId      Int?
+  contractBatchId Int?
+  unitId          Int       // Đơn vị tiếp nhận nhập kho
+  sourceUnitId    Int?      // Đơn vị gửi hàng (nếu nhận ĐH cũ từ 12 ĐV về xưởng)
+  delivererName    String?   // Người giao hàng
+  receiverName     String?   // Người nhận hàng
+  technicianName   String?   // Người phụ trách kỹ thuật
+  customerDeptName String?   // Phòng quản lý khách hàng
+  createdBy        Int
+  status           String    @default("draft") // "draft", "confirmed", "completed", "cancelled"
+  totalAmount     Float     @default(0)
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  contract   Contract?             @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  batch      ContractBatch?        @relation(fields: [contractBatchId], references: [id], onDelete: SetNull)
+  unit       Unit                  @relation("ImportDestinationUnit", fields: [unitId], references: [id], onDelete: Restrict)
+  sourceUnit Unit?                 @relation("ImportSourceUnit", fields: [sourceUnitId], references: [id], onDelete: SetNull)
+  user       User                  @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  details    ImportVoucherDetail[]
+
+  @@index([unitId])
+  @@index([sourceUnitId])
+  @@index([contractId])
+  @@index([contractBatchId])
+  @@index([voucherDate])
+  @@index([status])
+}
+
+// ============================================================================
+// 10. CHI TIẾT PHIẾU NHẬP KHO
+// ============================================================================
+model ImportVoucherDetail {
+  id              Int      @id @default(autoincrement())
+  importVoucherId Int
+  meterId         Int?
+  sparePartId     Int?
+  quantity        Int
+  unitPrice       Float    @default(0)
+  lineAmount      Float    @default(0)
+  status          String   @default("new") // "new", "circulating"
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  importVoucher ImportVoucher @relation(fields: [importVoucherId], references: [id], onDelete: Cascade)
+  meter         Meter?        @relation(fields: [meterId], references: [id], onDelete: SetNull)
+  sparePart     SparePart?    @relation(fields: [sparePartId], references: [id], onDelete: SetNull)
+
+  @@index([importVoucherId])
+  @@index([meterId])
+  @@index([sparePartId])
+}
+
+// ============================================================================
+// 11. PHIẾU XUẤT KHO (CẤP PHÁT 12 ĐV, XUẤT SỬA CHỮA, THANH LÝ)
+// ============================================================================
+model ExportVoucher {
+  id                Int      @id @default(autoincrement())
+  code              String   @unique // VD: PXK-2026-0001
+  voucherDate       DateTime
+  exportReason      String   // "unit_distribution", "repair_allocation", "liquidation", "other"
+  unitId            Int      // Kho xuất (thường là Kho VP)
+  destinationUnitId Int?     // Đơn vị tiếp nhận (nếu xuất cấp ĐV)
+  delivererName     String?  // Người giao
+  receiverName      String?  // Người nhận
+  createdBy         Int
+  status            String   @default("draft") // "draft", "confirmed", "completed", "cancelled"
+  totalAmount       Float    @default(0)
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  unit            Unit                  @relation("ExportSourceUnit", fields: [unitId], references: [id], onDelete: Restrict)
+  destinationUnit Unit?                 @relation("ExportDestinationUnit", fields: [destinationUnitId], references: [id], onDelete: SetNull)
+  user            User                  @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  details         ExportVoucherDetail[]
+
+  @@index([unitId])
+  @@index([destinationUnitId])
+  @@index([voucherDate])
+  @@index([status])
+}
+
+// ============================================================================
+// 12. CHI TIẾT PHIẾU XUẤT KHO
+// ============================================================================
+model ExportVoucherDetail {
+  id              Int      @id @default(autoincrement())
+  exportVoucherId Int
+  meterId         Int?
+  sparePartId     Int?
+  quantity        Int
+  unitPrice       Float    @default(0)
+  lineAmount      Float    @default(0)
+  status          String   @default("new") // "new", "circulating", "broken"
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  exportVoucher ExportVoucher @relation(fields: [exportVoucherId], references: [id], onDelete: Cascade)
+  meter         Meter?        @relation(fields: [meterId], references: [id], onDelete: SetNull)
+  sparePart     SparePart?    @relation(fields: [sparePartId], references: [id], onDelete: SetNull)
+
+  @@index([exportVoucherId])
+  @@index([meterId])
+  @@index([sparePartId])
+}
+
+// ============================================================================
+// 13. PHIẾU LUÂN CHUYỂN KHO (ĐIỀU ĐỘNG GIỮA KHO VP VÀ 12 ĐƠN VỊ)
+// ============================================================================
+model TransferVoucher {
+  id            Int      @id @default(autoincrement())
+  code          String   @unique // VD: PCK-2026-0001
+  voucherDate   DateTime
+  fromUnitId    Int
+  toUnitId      Int
+  transferType  String   // "dispatch_to_unit", "return_to_workshop"
+  createdBy     Int
+  status        String   @default("draft") // "draft", "in_transit", "received", "completed", "cancelled"
+  totalQuantity Int      @default(0)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  fromUnit    Unit                    @relation("TransferFromUnit", fields: [fromUnitId], references: [id], onDelete: Restrict)
+  toUnit      Unit                    @relation("TransferToUnit", fields: [toUnitId], references: [id], onDelete: Restrict)
+  user        User                    @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  details     TransferVoucherDetail[]
+  inspections MeterInspection[]
+
+  @@index([fromUnitId])
+  @@index([toUnitId])
+  @@index([voucherDate])
+  @@index([status])
+}
+
+// ============================================================================
+// 14. CHI TIẾT PHIẾU LUÂN CHUYỂN KHO
+// ============================================================================
+model TransferVoucherDetail {
+  id                Int      @id @default(autoincrement())
+  transferVoucherId Int
+  meterId           Int?
+  sparePartId       Int?
+  quantity          Int
+  meterStatus       String   @default("new") // "new", "circulating", "sent_for_repair"
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  transferVoucher TransferVoucher @relation(fields: [transferVoucherId], references: [id], onDelete: Cascade)
+  meter           Meter?          @relation(fields: [meterId], references: [id], onDelete: SetNull)
+  sparePart       SparePart?      @relation(fields: [sparePartId], references: [id], onDelete: SetNull)
+
+  @@index([transferVoucherId])
+  @@index([meterId])
+  @@index([sparePartId])
+}
+
+// ============================================================================
+// 15. PHIẾU SỬA CHỮA XƯỞNG (WORKFLOW 1 CORE: TRỪ LINH KIỆN & TĂNG QUAY VÒNG)
+// ============================================================================
+model RepairVoucher {
+  id                Int      @id @default(autoincrement())
+  code              String   @unique // VD: PSC-2026-0001
+  repairDate        DateTime
+  workshopUnitId    Int      // Kho VP / Xưởng sửa chữa
+  meterId           Int      // Loại đồng hồ cần sửa chữa (VD: ĐH015)
+  inputQuantity     Int      // Số lượng ĐH nhận sửa (lấy từ tồn "sent_for_repair")
+  completedQuantity Int      @default(0) // Số lượng sửa đạt -> Tăng tồn "circulating"
+  scrappedQuantity  Int      @default(0) // Số lượng hỏng nặng -> Tăng tồn "broken"
+  delivererName     String?  // Người giao (người bàn giao từ đơn vị/kho)
+  receiverName      String?  // Người nhận (thủ kho xưởng/KTV nhận)
+  createdBy         Int
+  technicianId      Int?
+  status            String   @default("draft") // "draft", "in_progress", "completed", "cancelled"
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  workshopUnit    Unit                     @relation(fields: [workshopUnitId], references: [id], onDelete: Restrict)
+  meter           Meter                    @relation(fields: [meterId], references: [id], onDelete: Restrict)
+  user            User                     @relation("RepairCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  technician      User?                    @relation("RepairTechnician", fields: [technicianId], references: [id], onDelete: SetNull)
+  sparePartUsages RepairVoucherSparePart[]
+
+  @@index([workshopUnitId])
+  @@index([meterId])
+  @@index([repairDate])
+  @@index([status])
+}
+
+// ============================================================================
+// 16. LINH KIỆN TIÊU HAO CHO PHIẾU SỬA CHỮA (BÓC TÁCH VẬT TƯ THỰC TẾ)
+// ============================================================================
+model RepairVoucherSparePart {
+  id              Int      @id @default(autoincrement())
+  repairVoucherId Int
+  sparePartId     Int
+  quantity        Int      // Số lượng linh kiện tiêu hao
+  unitPrice       Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  repairVoucher RepairVoucher @relation(fields: [repairVoucherId], references: [id], onDelete: Cascade)
+  sparePart     SparePart     @relation(fields: [sparePartId], references: [id], onDelete: Restrict)
+
+  @@unique([repairVoucherId, sparePartId])
+  @@index([repairVoucherId])
+  @@index([sparePartId])
+}
+
+// ============================================================================
+// 17. TIẾP NHẬN & PHÂN LOẠI KIỂM ĐỊNH ĐỒNG HỒ (WORKFLOW 2 CORE)
+// ============================================================================
+model MeterInspection {
+  id                Int      @id @default(autoincrement())
+  code              String   @unique // VD: PKD-2026-0001
+  inspectionDate    DateTime
+  transferVoucherId Int?     // Phiếu chuyển gửi hàng từ đơn vị về
+  unitId            Int      // Đơn vị gửi về (TP1, TP2, Mai Sơn...)
+  meterId           Int
+  quantityTotal     Int      // Tổng SL đồng hồ kiểm tra
+  passedQuantity    Int      @default(0) // Đạt chuẩn -> "circulating"
+  failedQuantity    Int      @default(0) // Hỏng không sửa được -> "broken"
+  repairQuantity    Int      @default(0) // Cần sửa chữa -> "sent_for_repair"
+  inspectionType    String   @default("incoming") // "warranty_check", "extraordinary", "incoming"
+  inspectorId       Int?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  transferVoucher TransferVoucher? @relation(fields: [transferVoucherId], references: [id], onDelete: SetNull)
+  unit            Unit             @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  meter           Meter            @relation(fields: [meterId], references: [id], onDelete: Restrict)
+  inspector       User?            @relation(fields: [inspectorId], references: [id], onDelete: SetNull)
+
+  @@index([unitId])
+  @@index([meterId])
+  @@index([transferVoucherId])
+  @@index([inspectionDate])
+}
+
+// ============================================================================
+// 18. NHẬT KÝ KIỂM TOÁN (AUDIT LOGS)
+// ============================================================================
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String   // "CREATE", "UPDATE", "DELETE", "CONFIRM", "CANCEL"
+  tableName String   // "Inventory", "RepairVoucher", "ExportVoucher"...
+  recordId  Int?
+  oldValue  String?  // JSON string
+  newValue  String?  // JSON string
+  changedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([tableName, recordId])
+  @@index([changedAt])
+}
+
+// ============================================================================
+// 19. CẢNH BÁO TỒN KHO & THÔNG BÁO HỆ THỐNG
+// ============================================================================
+model Alert {
+  id          Int       @id @default(autoincrement())
+  unitId      Int?
+  meterId     Int?
+  sparePartId Int?
+  alertType   String    @default("low_stock") // "low_stock", "out_of_stock", "repair_backlog"
+  message     String
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  unit      Unit?      @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  meter     Meter?     @relation(fields: [meterId], references: [id], onDelete: SetNull)
+  sparePart SparePart? @relation(fields: [sparePartId], references: [id], onDelete: SetNull)
+
+  @@index([unitId])
+  @@index([meterId])
+  @@index([sparePartId])
+  @@index([isRead])
+}
+
+// ============================================================================
+// 20. DANH MỤC NHÂN VIÊN THEO ĐƠN VỊ
+// ============================================================================
+model Employee {
+  id         Int      @id @default(autoincrement())
+  fullName   String
+  code       String?  // Mã nhân viên
+  phone      String?
+  unitId     Int?     // Đơn vị trực thuộc
+  department String?  // Phòng ban / Đội quản lý
+  position   String?  // Chức danh: Thủ kho, KTV, Lái xe, Cán bộ giao nhận...
+  isActive   Boolean  @default(true)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  unit Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+
+  @@index([unitId])
+}
