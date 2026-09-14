@@ -38,3 +38,4 @@ coverage/
 # Cloudflare & Vercel build output
 .vercel/
 .wrangler/
+.open-next/

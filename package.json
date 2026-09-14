@@ -14,6 +14,8 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "d1:export": "sqlite3 prisma/dev.db \".dump\" > prisma/d1-init.sql",
+    "build:cloudflare": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion",
+    "deploy:cloudflare": "wrangler deploy",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -32,6 +34,8 @@
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
+    "@opennextjs/cloudflare": "^1.20.6",
     "@types/node": "^20.17.10",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -41,6 +45,7 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^1.6.1"
+    "vitest": "^1.6.1",
+    "wrangler": "^4.131.1"
   }
 }
