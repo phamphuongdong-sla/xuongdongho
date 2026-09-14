@@ -1071,12 +1071,12 @@ export function UnitReportsClientView({
             <div className="space-y-4">
               <div className="flex justify-between items-center text-xs text-slate-500">
                 <span>Sổ chi tiết xuất theo từng chi nhánh / xí nghiệp (tháng)</span>
-                <span className="font-semibold text-brand-700">
+                <span className="font-semibold text-emerald-700">
                   Kỳ: {selectedMonth === 'all' ? `Cả Năm ${selectedYear}` : `${selectedMonth} / Năm ${selectedYear}`}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {unitHeaders.map((u, idx) => {
                   let unitTotalNew = 0;
                   let unitTotalCirc = 0;
@@ -1111,65 +1111,58 @@ export function UnitReportsClientView({
 
                   return (
                     <div
-                      key={u.key}
-                      className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 flex flex-col justify-between hover:border-brand-300 transition-all"
+                      key={u.key || idx}
+                      className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover:shadow-md transition-shadow"
                     >
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                              Đơn Vị #{idx + 1}
-                            </span>
-                            <h4 className="text-base font-extrabold text-slate-900 mt-0.5">
-                              {u.fullName}
-                            </h4>
+                      <div className="flex justify-between items-start border-b border-slate-100 pb-3 mb-3">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                            <h4 className="font-bold text-slate-900 text-sm">{u.fullName}</h4>
                           </div>
-
-                          <span className="px-2.5 py-1 rounded-full bg-brand-50 text-brand-800 text-xs font-black font-mono">
-                            {grand.toLocaleString()} cái
-                          </span>
+                          <span className="text-[11px] text-slate-400 font-mono">Mã: {u.abbr}</span>
                         </div>
-
-                        {/* Breakdown bar */}
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-900">
-                            <span className="text-[10px] text-blue-600 block font-semibold">ĐH Mới</span>
-                            <span className="font-mono font-bold text-sm">{unitTotalNew.toLocaleString()} cái</span>
-                          </div>
-                          <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-900">
-                            <span className="text-[10px] text-emerald-600 block font-semibold">ĐH Xưởng Sửa</span>
-                            <span className="font-mono font-bold text-sm">{unitTotalCirc.toLocaleString()} cái</span>
-                          </div>
-                        </div>
-
-                        {/* Meter list table */}
-                        <div className="space-y-1 pt-1">
-                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                            Các loại đồng hồ đã nhận ({activeMeters.length} loại):
-                          </span>
-
-                          <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-                            {activeMeters.length === 0 ? (
-                              <p className="text-xs text-slate-400 italic py-2">Chưa phát sinh xuất kho kỳ này.</p>
-                            ) : (
-                              activeMeters.map((m, mIdx) => (
-                                <div
-                                  key={mIdx}
-                                  className="flex justify-between items-center py-1.5 px-2 rounded-lg bg-slate-50 text-xs border border-slate-100"
-                                >
-                                  <span className="font-medium text-slate-800 truncate max-w-[170px]" title={m.name}>
-                                    {m.name}
-                                  </span>
-
-                                  <div className="text-right font-mono text-[11px] flex-shrink-0">
-                                    <span className="font-bold text-slate-900">{m.total}</span>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
+                        <div className="text-right">
+                          <span className="text-xs text-slate-500 block">Tổng xuất cấp:</span>
+                          <span className="text-lg font-black text-emerald-700 font-mono">{grand.toLocaleString()} cái</span>
                         </div>
                       </div>
+
+                      {/* Breakdown bar */}
+                      <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                        <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-900">
+                          <span className="text-[10px] text-blue-600 block font-semibold">ĐH Mới</span>
+                          <span className="font-mono font-bold text-sm">{unitTotalNew.toLocaleString()} cái</span>
+                        </div>
+                        <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-900">
+                          <span className="text-[10px] text-emerald-600 block font-semibold">ĐH Xưởng Sửa</span>
+                          <span className="font-mono font-bold text-sm">{unitTotalCirc.toLocaleString()} cái</span>
+                        </div>
+                      </div>
+
+                      {activeMeters.length === 0 ? (
+                        <p className="text-xs text-slate-400 italic py-4 text-center">
+                          Chưa phát sinh xuất kho trong đợt này.
+                        </p>
+                      ) : (
+                        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 text-xs">
+                          {activeMeters.map((m, mIdx) => (
+                            <div key={mIdx} className="flex justify-between items-center py-1 px-2 rounded bg-slate-50">
+                              <span className="font-medium text-slate-700 truncate pr-2" title={m.name}>
+                                {m.name}
+                              </span>
+                              <div className="flex items-center gap-1.5 font-mono text-right flex-shrink-0">
+                                {m.newQty > 0 && m.circQty > 0 ? (
+                                  <span className="text-[10px] text-slate-400">
+                                    ({m.newQty}M + {m.circQty}SC)
+                                  </span>
+                                ) : null}
+                                <span className="font-bold text-slate-900">{m.total} cái</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
