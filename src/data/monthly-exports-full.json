@@ -1,0 +1,1746 @@
+{
+  "months": [
+    "Tháng 1",
+    "Tháng 2",
+    "Tháng 3",
+    "Tháng 4",
+    "Tháng 5",
+    "Tháng 6",
+    "Tháng 7",
+    "Tháng 8",
+    "Tháng 9",
+    "Tháng 10",
+    "Tháng 11",
+    "Tháng 12"
+  ],
+  "products": [
+    {
+      "code": "ĐH015",
+      "name": "Đồng hồ D15",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 180.0,
+          "total": 180.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 60.0,
+          "total": 60.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 310.0,
+          "total": 310.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 700.0,
+          "total": 700.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 120.0,
+          "total": 120.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 120.0,
+          "total": 120.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 90.0,
+          "total": 90.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 160.0,
+          "total": 160.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 1740.0,
+        "total": 1740.0
+      }
+    },
+    {
+      "code": "ĐH015(SC)",
+      "name": "Đồng hồ sửa chữa 015",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 920.0,
+          "total": 920.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 920.0,
+          "total": 920.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 920.0,
+          "total": 920.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 780.0,
+          "total": 780.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 620.0,
+          "total": 620.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 700.0,
+          "total": 700.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 700.0,
+          "total": 700.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 700.0,
+          "total": 700.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 700.0,
+          "total": 700.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 6969.0,
+        "total": 6969.0
+      }
+    },
+    {
+      "code": "ĐH015-CTOR",
+      "name": "Đồng hồ sửa chữa 015 đơn vị",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH015-TAC",
+      "name": "Đồng hồ Thái Aichi MAM-15 ( không kèm rắc co)",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH020",
+      "name": "Đồng hồ D20",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH025",
+      "name": "Đồng hồ D25",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH025(SC)",
+      "name": "Đồng hồ D25 (sửa chữa)",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH032",
+      "name": "Đồng hồ D32",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH032(SC)",
+      "name": "Đồng hồ D32 (sửa chữa)",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH040",
+      "name": "Đồng hồ D40",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 6.0,
+          "total": 6.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 2.0,
+          "total": 2.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 2.0,
+          "total": 2.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 5.0,
+          "total": 5.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 9.0,
+          "total": 9.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 5.0,
+          "total": 5.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 2.0,
+          "total": 2.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 31.0,
+        "total": 31.0
+      }
+    },
+    {
+      "code": "ĐH040(SC)",
+      "name": "Đồng hồ D40 (sửa chữa)",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 3.0,
+          "total": 3.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 3.0,
+        "total": 3.0
+      }
+    },
+    {
+      "code": "ĐH040-ĐLL",
+      "name": "Đồng hồ đo lưu lượng Turbobar hiệu Bermad DN40",
+      "unit": "Bộ",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH050",
+      "name": "Đồng hồ D50",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 1.0,
+          "total": 1.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 1.0,
+          "total": 1.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 2.0,
+        "total": 2.0
+      }
+    },
+    {
+      "code": "ĐH050(SC)",
+      "name": "Đồng hồ D50 (sửa chữa)",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH050-BM",
+      "name": "Đồng hồ DN50 hiệu Bermad",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH065",
+      "name": "Đồng hồ D65",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 1.0,
+          "total": 1.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 1.0,
+        "total": 1.0
+      }
+    },
+    {
+      "code": "ĐH065-ĐLL",
+      "name": "Đồng hồ đo lưu lượng Turbobar hiệu Bermad DN65",
+      "unit": "Bộ",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH080",
+      "name": "Đồng hồ D80",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 2.0,
+          "total": 2.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 2.0,
+        "total": 2.0
+      }
+    },
+    {
+      "code": "ĐH100",
+      "name": "Đồng hồ D100",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 2.0,
+          "total": 2.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 1.0,
+          "total": 1.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 3.0,
+        "total": 3.0
+      }
+    },
+    {
+      "code": "ĐH150",
+      "name": "Đồng hồ D150",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 1.0,
+          "total": 1.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 1.0,
+        "total": 1.0
+      }
+    },
+    {
+      "code": "ĐH150-CTOR",
+      "name": "Đồng hồ nước DN150 CONTOR-Metcon Qn=150m3/h, cấp B (Pvđ: 4,5-300m3/h)",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 0.0,
+        "total": 0.0
+      }
+    },
+    {
+      "code": "ĐH200",
+      "name": "Đồng hồ D200",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 1.0,
+          "total": 1.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 1.0,
+          "total": 1.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 5": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 6": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 7": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 8": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 2.0,
+        "total": 2.0
+      }
+    },
+    {
+      "code": "D25FLD",
+      "name": "Đồng hồ D25 Flodis",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 0.0,
+          "new": 5.0,
+          "total": 5.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 2.0,
+          "total": 2.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 4.0,
+          "total": 4.0
+        },
+        "Tháng 5": {
+          "circ": 0,
+          "new": 5.0,
+          "total": 5.0
+        },
+        "Tháng 6": {
+          "circ": 0,
+          "new": 6.0,
+          "total": 6.0
+        },
+        "Tháng 7": {
+          "circ": 0,
+          "new": 7.0,
+          "total": 7.0
+        },
+        "Tháng 8": {
+          "circ": 0,
+          "new": 2.0,
+          "total": 2.0
+        },
+        "Tháng 9": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 0.0,
+        "new": 31.0,
+        "total": 31.0
+      }
+    },
+    {
+      "code": "D32FLD",
+      "name": "Đồng hồ D32 Flodis",
+      "unit": "Cái",
+      "months": {
+        "Tháng 1": {
+          "circ": 1.0,
+          "new": 1.0,
+          "total": 2.0
+        },
+        "Tháng 2": {
+          "circ": 0.0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 3": {
+          "circ": 0.0,
+          "new": 1.0,
+          "total": 1.0
+        },
+        "Tháng 4": {
+          "circ": 0.0,
+          "new": 3.0,
+          "total": 3.0
+        },
+        "Tháng 5": {
+          "circ": 0,
+          "new": 4.0,
+          "total": 4.0
+        },
+        "Tháng 6": {
+          "circ": 0,
+          "new": 4.0,
+          "total": 4.0
+        },
+        "Tháng 7": {
+          "circ": 0,
+          "new": 2.0,
+          "total": 2.0
+        },
+        "Tháng 8": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 9": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 10": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 11": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        },
+        "Tháng 12": {
+          "circ": 0,
+          "new": 0.0,
+          "total": 0.0
+        }
+      },
+      "year_total": {
+        "circ": 1.0,
+        "new": 15.0,
+        "total": 16.0
+      }
+    }
+  ]
+}

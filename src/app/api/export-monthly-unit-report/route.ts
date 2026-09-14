@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
 import { prisma } from '@/lib/prisma';
-import fs from 'node:fs';
-import path from 'node:path';
+import unitMonthlyExportsData from '@/data/unit-monthly-exports.json';
 import { 
   extractMeterDN, 
   isRepairedMeter, 
@@ -48,14 +47,7 @@ export async function GET(request: NextRequest) {
     // 3. For 2026: also load unitMonthlyExports fixture
     let base2026UnitExports: any = null;
     if (year === 2026) {
-      const p = path.join(process.cwd(), 'tests', 'fixtures', 'unit-monthly-exports.json');
-      if (fs.existsSync(p)) {
-        try {
-          base2026UnitExports = JSON.parse(fs.readFileSync(p, 'utf8'));
-        } catch (e) {
-          console.error('Error loading unit-monthly-exports.json:', e);
-        }
-      }
+      base2026UnitExports = unitMonthlyExportsData;
     }
 
     // 4. Matrix of unit values: unitKey -> { repaired: Record<dn, qty>, new: Record<dn, qty>, notes: string[] }

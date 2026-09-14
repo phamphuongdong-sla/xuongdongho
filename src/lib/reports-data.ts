@@ -1,78 +1,30 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { prisma } from '@/lib/prisma';
 import { buildMultiYearReportsData } from '@/services/reports.service';
 import { getSessionUser } from '@/lib/auth';
 
+import excelOracle from '@/data/excel-oracle.json';
+import monthlyExportsFull from '@/data/monthly-exports-full.json';
+import unitMonthlyExportsData from '@/data/unit-monthly-exports.json';
+import unitMonthlyReturnsData from '@/data/unit-monthly-returns.json';
+import unitYearlyPlansData from '@/data/unit-yearly-plans.json';
+import unitUsedYearlyPlansData from '@/data/unit-used-yearly-plans.json';
+
 export async function getAggregatedReportsData() {
-  const oraclePath = path.join(process.cwd(), 'tests', 'fixtures', 'excel-oracle.json');
-  let oracle = { meters: [], spare_parts: [] };
-  if (fs.existsSync(oraclePath)) {
-    oracle = JSON.parse(fs.readFileSync(oraclePath, 'utf8'));
-  }
-
-  const monthlyExportsPath = path.join(process.cwd(), 'tests', 'fixtures', 'monthly-exports-full.json');
-  let monthlyExports = { months: [], products: [] };
-  if (fs.existsSync(monthlyExportsPath)) {
-    monthlyExports = JSON.parse(fs.readFileSync(monthlyExportsPath, 'utf8'));
-  }
-
-  const unitMonthlyExportsPath = path.join(process.cwd(), 'tests', 'fixtures', 'unit-monthly-exports.json');
-  let unitMonthlyExports: any = { months: [], units: {} };
-  if (fs.existsSync(unitMonthlyExportsPath)) {
-    unitMonthlyExports = JSON.parse(fs.readFileSync(unitMonthlyExportsPath, 'utf8'));
-  }
-
-  const unitMonthlyReturnsPath = path.join(process.cwd(), 'tests', 'fixtures', 'unit-monthly-returns.json');
-  let unitMonthlyReturns: any = { months: [], units: {} };
-  if (fs.existsSync(unitMonthlyReturnsPath)) {
-    unitMonthlyReturns = JSON.parse(fs.readFileSync(unitMonthlyReturnsPath, 'utf8'));
-  }
-
-  const openingBalancesPath = path.join(process.cwd(), 'data', 'opening-balances.json');
-  let openingOverrides = { meters: {}, parts: {} };
-  if (fs.existsSync(openingBalancesPath)) {
-    try {
-      openingOverrides = JSON.parse(fs.readFileSync(openingBalancesPath, 'utf8'));
-    } catch (e) {
-      console.error('Error reading opening balances in getAggregatedReportsData:', e);
-    }
-  }
-
-  const unitPlansPath = path.join(process.cwd(), 'data', 'unit-yearly-plans.json');
-  let unitYearlyPlans: Record<string, number> = {};
-  if (fs.existsSync(unitPlansPath)) {
-    try {
-      unitYearlyPlans = JSON.parse(fs.readFileSync(unitPlansPath, 'utf8'));
-    } catch (e) {
-      console.error('Error reading unit yearly plans in getAggregatedReportsData:', e);
-    }
-  }
-
-  const unitUsedPlansPath = path.join(process.cwd(), 'data', 'unit-used-yearly-plans.json');
-  let unitUsedYearlyPlans: Record<string, number> = {};
-  if (fs.existsSync(unitUsedPlansPath)) {
-    try {
-      unitUsedYearlyPlans = JSON.parse(fs.readFileSync(unitUsedPlansPath, 'utf8'));
-    } catch (e) {
-      console.error('Error reading unit used yearly plans in getAggregatedReportsData:', e);
-    }
-  }
+  const oracle = excelOracle as any;
+  const monthlyExports = monthlyExportsFull as any;
+  const unitMonthlyExports = unitMonthlyExportsData as any;
+  const unitMonthlyReturns = unitMonthlyReturnsData as any;
+  const unitYearlyPlans = (unitYearlyPlansData || {}) as Record<string, number>;
+  const unitUsedYearlyPlans = (unitUsedYearlyPlansData || {}) as Record<string, number>;
+  const openingOverrides = { meters: {}, parts: {} };
 
   // Fetch live meters, spare parts, units, vouchers from DB & current user session
+  // Note: optimize queries by omitting unused deep nested relations on Cloudflare Workers
   const [allMeters, allSpareParts, units, allExportVouchers, allImportVouchers, allRepairVouchers, employees, user] = await Promise.all([
     prisma.meter.findMany({ orderBy: { code: 'asc' } }),
     prisma.sparePart.findMany({ orderBy: { code: 'asc' } }),
     prisma.unit.findMany({
       where: { code: { not: 'KHO-VP' } },
-      include: {
-        inventories: {
-          include: { meter: true },
-        },
-        receivedExports: {
-          include: { details: { include: { meter: true } } },
-        },
-      },
       orderBy: { sortOrder: 'asc' },
     }),
     prisma.exportVoucher.findMany({
@@ -104,7 +56,7 @@ export async function getAggregatedReportsData() {
     getSessionUser(),
   ]);
 
-  // Aggregate multi-year data (supports 2025, 2026, 2027, 2028...)
+  // Aggregate multi-year data (supports 2025, 2026, and any voucher years)
   const { availableYears, yearlyData } = buildMultiYearReportsData({
     base2026Monthly: monthlyExports,
     base2026UnitMonthly: unitMonthlyExports,
@@ -122,10 +74,12 @@ export async function getAggregatedReportsData() {
   const unitSummaries = units.map((u) => {
     let newM = 0;
     let circM = 0;
-    for (const exp of u.receivedExports) {
-      for (const d of exp.details) {
-        if (d.status === 'new') newM += d.quantity;
-        else if (d.status === 'circulating') circM += d.quantity;
+    for (const exp of allExportVouchers) {
+      if (exp.destinationUnitId === u.id) {
+        for (const d of (exp.details || [])) {
+          if (d.status === 'new') newM += (d.quantity || 0);
+          else if (d.status === 'circulating') circM += (d.quantity || 0);
+        }
       }
     }
 
@@ -143,14 +97,30 @@ export async function getAggregatedReportsData() {
     };
   });
 
+  // Optimize payload: only serialize what client components actually use
+  const optimizedExportVouchers = allExportVouchers.map((v) => ({
+    id: v.id,
+    code: v.code,
+    voucherDate: v.voucherDate,
+    destinationUnit: v.destinationUnit ? { id: v.destinationUnit.id, code: v.destinationUnit.code, name: v.destinationUnit.name } : null,
+    notes: v.notes || '',
+  }));
+
+  const optimizedUnits = units.map((u) => ({
+    id: u.id,
+    code: u.code,
+    name: u.name,
+    sortOrder: u.sortOrder,
+  }));
+
   return {
     oracle,
     availableYears,
     yearlyData,
     unitSummaries,
     user,
-    allExportVouchers,
-    units,
+    allExportVouchers: optimizedExportVouchers,
+    units: optimizedUnits,
     employees,
     unitYearlyPlans,
     unitUsedYearlyPlans,

@@ -45,12 +45,15 @@ export async function updateOpeningStock(data: {
     current.parts[yrStr][identifier] = Math.max(0, opening);
   }
 
-  const dir = path.dirname(BALANCES_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    const dir = path.dirname(BALANCES_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(BALANCES_FILE, JSON.stringify(current, null, 2), 'utf8');
+  } catch (e) {
+    // Edge / worker runtime does not have writable filesystem
   }
-
-  fs.writeFileSync(BALANCES_FILE, JSON.stringify(current, null, 2), 'utf8');
 
   revalidatePath('/reports');
   revalidatePath('/unit-reports');

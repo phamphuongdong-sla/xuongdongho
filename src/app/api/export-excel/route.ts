@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
 import { prisma } from '@/lib/prisma';
-import fs from 'node:fs';
-import path from 'node:path';
+import excelOracle from '@/data/excel-oracle.json';
 
 export async function GET() {
   try {
@@ -75,10 +74,8 @@ export async function GET() {
     });
 
     // Sheet 2: Đối soát Đồng Hồ Nước (Bám sát file Excel Nhập Xuất ĐH 2026.xlsx)
-    const oraclePath = path.join(process.cwd(), 'tests', 'fixtures', 'excel-oracle.json');
-    if (fs.existsSync(oraclePath)) {
-      const oracle = JSON.parse(fs.readFileSync(oraclePath, 'utf8'));
-
+    const oracle = excelOracle as any;
+    if (oracle && oracle.meters) {
       const sheet2 = workbook.addWorksheet('Đối Soát ĐH 2026', {
         views: [{ showGridLines: true }],
       });

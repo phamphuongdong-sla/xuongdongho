@@ -230,19 +230,25 @@ export function buildMultiYearReportsData({
   availableYears: number[];
   yearlyData: Record<number, YearlyReportData>;
 } {
-  // Collect all years: default 2025 to 2030, plus any year from DB vouchers
+  // Collect active data years: 2025 (historical baseline), 2026 (base year), current year, plus any year from DB vouchers
   const currentSystemYear = new Date().getFullYear();
-  const yearSet = new Set<number>([2025, 2026, 2027, 2028, 2029, 2030, currentSystemYear]);
+  const yearSet = new Set<number>([2025, 2026, currentSystemYear]);
   
-  for (const v of allExportVouchers) {
+  for (const v of (allExportVouchers || [])) {
     if (v.voucherDate) {
       const yr = new Date(v.voucherDate).getFullYear();
       if (!isNaN(yr)) yearSet.add(yr);
     }
   }
-  for (const v of allImportVouchers) {
+  for (const v of (allImportVouchers || [])) {
     if (v.voucherDate) {
       const yr = new Date(v.voucherDate).getFullYear();
+      if (!isNaN(yr)) yearSet.add(yr);
+    }
+  }
+  for (const v of (allRepairVouchers || [])) {
+    if (v.repairDate) {
+      const yr = new Date(v.repairDate).getFullYear();
       if (!isNaN(yr)) yearSet.add(yr);
     }
   }
