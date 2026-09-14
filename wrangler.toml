@@ -8,4 +8,4 @@ assets = { directory = ".open-next/assets", binding = "ASSETS" }
 [[d1_databases]]
 binding = "DB"
 database_name = "xuongdongho-db"
-database_id = "" # Điền database_id sau khi chạy: npx wrangler d1 create xuongdongho-db
+database_id = "fa421ab4-5e33-4cb0-9bae-7c565aaf921c"

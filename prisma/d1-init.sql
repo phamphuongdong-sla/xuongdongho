@@ -1,5 +1,4 @@
 PRAGMA foreign_keys=OFF;
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "User" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "email" TEXT NOT NULL,
@@ -586,4 +585,3 @@ CREATE UNIQUE INDEX "Unit_code_key" ON "Unit"("code");
 CREATE INDEX "Unit_code_idx" ON "Unit"("code");
 CREATE INDEX "Unit_type_idx" ON "Unit"("type");
 CREATE INDEX "Unit_sortOrder_idx" ON "Unit"("sortOrder");
-COMMIT;
