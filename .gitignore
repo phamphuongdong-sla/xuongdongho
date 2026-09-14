@@ -8,8 +8,9 @@
 /out/
 *.tsbuildinfo
 
-# Production & SQLite local database
+# Production & SQLite local database (dev.db is included so cloud deployments have pre-seeded data)
 prisma/*.db
+!prisma/dev.db
 prisma/*.db-journal
 prisma/*.db-wal
 prisma/*.db-shm
