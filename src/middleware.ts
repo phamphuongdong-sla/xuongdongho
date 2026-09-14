@@ -9,14 +9,24 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public static files with extensions (.svg, .png, .jpg, .jpeg, .gif, .webp, .xlsx, .pdf, .ico)
+     * - manifest.json, sw.js, offline.html (PWA files)
+     * - public static files with extensions (.svg, .png, .jpg, .jpeg, .gif, .webp, .xlsx, .pdf, .ico, .json, .js, .html)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|xlsx|pdf|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|offline.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp|xlsx|pdf|ico|json|js|html)$).*)',
   ],
 };
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // Public PWA assets: allow direct access without auth
+  if (
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname === '/offline.html'
+  ) {
+    return NextResponse.next();
+  }
 
   // 1. Read session cookie
   const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;

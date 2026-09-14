@@ -1,0 +1,61 @@
+{
+  "name": "Quản Lý Kho Đồng Hồ & Vật Tư Sửa Chữa",
+  "short_name": "QL Kho SOWASUCO",
+  "description": "Hệ thống quản lý kho đồng hồ nước, xưởng sửa chữa và luân chuyển 12 đơn vị - Công ty cổ phần cấp nước Sơn La",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0284c7",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "vi",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Xuất Đồng Hồ",
+      "short_name": "Xuất Kho",
+      "description": "Lập phiếu xuất kho cấp phát đồng hồ cho 12 đơn vị",
+      "url": "/distribution",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Thu Hồi ĐH Cũ",
+      "short_name": "Nhập ĐH Cũ",
+      "description": "Tiếp nhận đồng hồ hỏng/cũ về xưởng bảo dưỡng",
+      "url": "/used-meters",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tổng hợp 12 Đơn vị",
+      "short_name": "Báo Cáo",
+      "description": "Xem báo cáo tổng hợp nhập xuất 12 đơn vị",
+      "url": "/unit-reports",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

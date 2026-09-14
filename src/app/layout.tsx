@@ -1,12 +1,30 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { ReactNode } from 'react';
 import { Navigation } from '@/components/Navigation';
+import { PwaRegister } from '@/components/PwaRegister';
 import { getSessionUser } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: 'SOWASUCO WM - Quản lý Kho Đồng hồ & Vật tư Linh kiện',
   description: 'Hệ thống Quản lý Kho Đồng hồ nước, Xưởng sửa chữa & Luân chuyển 12 Đơn vị - SOWASUCO',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'QL Kho SOWASUCO',
+  },
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/apple-touch-icon.png',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0284c7',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default async function RootLayout({
@@ -19,6 +37,7 @@ export default async function RootLayout({
   return (
     <html lang="vi">
       <body className="min-h-screen bg-slate-50 antialiased font-sans text-slate-900 flex flex-col">
+        <PwaRegister />
         <Navigation initialUser={user} />
         <div className="flex-1">
           {children}
