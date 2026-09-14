@@ -9,6 +9,7 @@ export interface SessionUser {
   unitId: number | null;
   unitName?: string | null;
   department?: string | null;
+  originalRole?: UserRole;
 }
 
 export interface SessionPayload extends SessionUser {

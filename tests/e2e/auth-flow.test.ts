@@ -155,6 +155,25 @@ describe('E2E Authentication & Session Flow Tests', () => {
       const finalVerified = await verifySession(unitRes.token!);
       expect(finalVerified?.role).toBe('unit_user');
       expect(finalVerified?.email).toBe('chinhanh.tp1@sowasuco.vn');
+      expect(finalVerified?.originalRole).toBe('admin');
+    });
+
+    it('strictly forbids non-admin users without originalRole=admin from switching roles', async () => {
+      const { vi } = await import('vitest');
+      const authLib = await import('@/lib/auth');
+      const spy = vi.spyOn(authLib, 'getSessionUser').mockResolvedValueOnce({
+        id: 8,
+        email: 'thukho@sowasuco.vn',
+        fullName: 'Nguyễn Văn Kho',
+        role: 'kho',
+        unitId: 27,
+      });
+
+      const attempt = await switchRole('admin');
+      expect(attempt.success).toBe(false);
+      expect(attempt.error).toContain('Chỉ có duy nhất');
+
+      spy.mockRestore();
     });
   });
 

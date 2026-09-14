@@ -174,9 +174,32 @@ export function Navigation({ initialUser }: NavigationProps) {
     });
   };
 
+  // Strict Permission: Only Admin (or Admin who has switched role) can switch roles
+  const canSwitchRole = currentUser?.role === 'admin' || currentUser?.originalRole === 'admin';
+
   const handleSwitchRole = async (targetRole: UserRole) => {
     setIsSwitcherOpen(false);
     startTransition(async () => {
+      try {
+        const res = await fetch('/api/auth/switch-role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: targetRole }),
+        });
+        const result = await res.json();
+        if (result.success && result.user) {
+          setCurrentUser(result.user);
+          if (pathname.startsWith('/admin') && targetRole !== 'admin' && targetRole !== 'kho') {
+            router.push('/');
+          } else {
+            router.refresh();
+          }
+          return;
+        }
+      } catch {
+        // Fallback to server action
+      }
+
       const result = await switchRole(targetRole);
       if (result.success && result.user) {
         setCurrentUser(result.user);
@@ -221,65 +244,67 @@ export function Navigation({ initialUser }: NavigationProps) {
             </span>
           </div>
 
-          {/* Quick Role Switcher (R3) Dropdown in Topbar */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
-              disabled={isPending}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-700 hover:bg-brand-600 text-white text-[11px] font-bold tracking-wide transition-all shadow-sm border border-brand-500/40"
-              title="Chuyển đổi nhanh vai trò tài khoản để kiểm thử phân quyền (R3)"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-              <span>Chuyển Vai Trò</span>
-              <ChevronDown className={`w-3 h-3 transition-transform ${isSwitcherOpen ? 'rotate-180' : ''}`} />
-            </button>
+          {/* Quick Role Switcher (R3) Dropdown in Topbar - ONLY ADMIN */}
+          {canSwitchRole && (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+                disabled={isPending}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-700 hover:bg-brand-600 text-white text-[11px] font-bold tracking-wide transition-all shadow-sm border border-brand-500/40"
+                title="Chuyển đổi nhanh vai trò tài khoản (Chỉ dành cho Quản trị viên)"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+                <span>Chuyển Vai Trò</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${isSwitcherOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-            {isSwitcherOpen && (
-              <div className="absolute right-0 mt-1.5 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-slate-800 animate-in fade-in slide-in-from-top-1">
-                <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50">
-                  <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
-                    <span>Bộ Chuyển Đổi Vai Trò (R3)</span>
-                    <span className="text-[10px] text-brand-600 font-semibold">1-Click</span>
-                  </p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">
-                    Chuyển tài khoản tức thời không cần mật khẩu
-                  </p>
-                </div>
+              {isSwitcherOpen && (
+                <div className="absolute right-0 mt-1.5 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-slate-800 animate-in fade-in slide-in-from-top-1">
+                  <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50">
+                    <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                      <span>Bộ Chuyển Đổi Vai Trò (Admin)</span>
+                      <span className="text-[10px] text-brand-600 font-semibold">1-Click</span>
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Đặc quyền Quản trị viên kiểm thử giao diện các vai trò
+                    </p>
+                  </div>
 
-                <div className="py-1">
-                  {SWITCHER_OPTIONS.map((opt) => {
-                    const isSelected = effectiveRole === opt.role;
-                    const optConfig = ROLE_DISPLAY_CONFIG[opt.role];
-                    return (
-                      <button
-                        key={opt.role}
-                        type="button"
-                        onClick={() => handleSwitchRole(opt.role)}
-                        className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                          isSelected ? 'bg-brand-50/70 font-semibold text-brand-900' : 'text-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${optConfig.dotClass}`} />
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-bold">{opt.name}</span>
-                              <span className={`text-[9px] px-1 py-0.2 rounded font-medium border ${optConfig.badgeClass}`}>
-                                {opt.role}
-                              </span>
+                  <div className="py-1">
+                    {SWITCHER_OPTIONS.map((opt) => {
+                      const isSelected = effectiveRole === opt.role;
+                      const optConfig = ROLE_DISPLAY_CONFIG[opt.role];
+                      return (
+                        <button
+                          key={opt.role}
+                          type="button"
+                          onClick={() => handleSwitchRole(opt.role)}
+                          className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors ${
+                            isSelected ? 'bg-brand-50/70 font-semibold text-brand-900' : 'text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${optConfig.dotClass}`} />
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold">{opt.name}</span>
+                                <span className={`text-[9px] px-1 py-0.2 rounded font-medium border ${optConfig.badgeClass}`}>
+                                  {opt.role}
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-slate-500">{optConfig.label}</p>
                             </div>
-                            <p className="text-[10px] text-slate-500">{optConfig.label}</p>
                           </div>
-                        </div>
-                        {isSelected && <Check className="w-4 h-4 text-brand-600 shrink-0" />}
-                      </button>
-                    );
-                  })}
+                          {isSelected && <Check className="w-4 h-4 text-brand-600 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Logout Button */}
           <button

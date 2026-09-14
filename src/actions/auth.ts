@@ -153,6 +153,18 @@ export async function logout(): Promise<{ success: boolean; redirectTo: string }
  */
 export async function switchRole(role: UserRole): Promise<AuthResult> {
   try {
+    // Permission check: Only Admin (or Admin who has switched role) can switch roles
+    const currentSession = await getSessionUser();
+    if (currentSession) {
+      const isAdmin = currentSession.role === 'admin' || currentSession.originalRole === 'admin';
+      if (!isAdmin) {
+        return {
+          success: false,
+          error: 'Chỉ có duy nhất tài khoản Quản trị viên (Admin) mới có quyền chuyển đổi vai trò.',
+        };
+      }
+    }
+
     const persona = DEMO_PERSONAS[role];
     let user = null;
 
@@ -174,6 +186,9 @@ export async function switchRole(role: UserRole): Promise<AuthResult> {
       return { success: false, error: `Không tìm thấy người dùng cho vai trò ${role}` };
     }
 
+    const effectiveOriginalRole: UserRole =
+      currentSession?.originalRole || 'admin';
+
     const sessionUser: SessionUser = {
       id: user.id,
       email: user.email,
@@ -182,6 +197,7 @@ export async function switchRole(role: UserRole): Promise<AuthResult> {
       unitId: user.unitId,
       unitName: user.unit?.name ?? null,
       department: user.department,
+      originalRole: effectiveOriginalRole,
     };
 
     const token = await signSession(sessionUser);

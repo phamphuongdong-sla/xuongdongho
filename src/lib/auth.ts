@@ -59,6 +59,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       unitId: payload.unitId,
       unitName: payload.unitName,
       department: payload.department,
+      originalRole: payload.originalRole,
     };
   } catch {
     // Non-request context or headless runner
