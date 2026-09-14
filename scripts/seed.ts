@@ -78,10 +78,32 @@ async function main() {
     },
   });
 
+  const adminGmail = await prisma.user.create({
+    data: {
+      email: 'phamphuongdong@gmail.com',
+      fullName: 'Phạm Phương Đông',
+      role: 'admin',
+      passwordHash: demoPasswordHash,
+      department: 'Phòng Quản lý Khách hàng',
+      unitId: khoVpId,
+    },
+  });
+
   const khoUser = await prisma.user.create({
     data: {
       email: 'thukho@sowasuco.vn',
       fullName: 'Nguyễn Văn Kho',
+      role: 'kho',
+      passwordHash: demoPasswordHash,
+      department: 'Bộ phận Kho vật tư',
+      unitId: khoVpId,
+    },
+  });
+
+  const khoGmail = await prisma.user.create({
+    data: {
+      email: 'phieulinhdonhho.cnsl@gmail.com',
+      fullName: 'Nguyễn Văn Tiến',
       role: 'kho',
       passwordHash: demoPasswordHash,
       department: 'Bộ phận Kho vật tư',
@@ -309,78 +331,193 @@ async function main() {
 
   // 9. Seed Sample Vouchers for demonstration of workflows
   console.log('Seeding Sample Vouchers...');
-  if (d15MeterId) {
-    const repairVoucher = await prisma.repairVoucher.create({
+  const d25MeterId = meterMap.get('ĐH025');
+  const d32MeterId = meterMap.get('ĐH032');
+  const part1 = partMap.get(1);
+  const part2 = partMap.get(2);
+  const part3 = partMap.get(3);
+  const part4 = partMap.get(4);
+
+  // 9.1 Seed ImportVouchers for Used Meters Recovery (Thu hồi ĐH cũ từ các đơn vị về xưởng)
+  console.log('Seeding Used Meters Recovery Vouchers...');
+  const usedUnits = [
+    { code: 'XNCN-TP01', countD15: 20, countD25: 5, date: '2026-02-08', codeNum: 'TH-001' },
+    { code: 'XNCN-TP02', countD15: 15, countD25: 0, date: '2026-02-12', codeNum: 'TH-002' },
+    { code: 'XNCN-MS',   countD15: 12, countD25: 3, date: '2026-02-25', codeNum: 'TH-003' },
+    { code: 'CNCN-MC',   countD15: 18, countD25: 4, date: '2026-03-05', codeNum: 'TH-004' },
+    { code: 'CNCN-YC',   countD15: 10, countD25: 0, date: '2026-03-15', codeNum: 'TH-005' },
+    { code: 'CNCN-SM',   countD15: 8,  countD25: 2, date: '2026-03-22', codeNum: 'TH-006' },
+  ];
+
+  for (const item of usedUnits) {
+    const srcUnitId = unitMap.get(item.code);
+    if (!srcUnitId) continue;
+
+    const totalQty = item.countD15 + item.countD25;
+    const estAmount = totalQty * 80000;
+
+    const impV = await prisma.importVoucher.create({
       data: {
-        code: 'PSC-2026-0001',
-        repairDate: new Date('2026-02-15'),
-        workshopUnitId: khoVpId,
-        meterId: d15MeterId,
-        inputQuantity: 20,
-        completedQuantity: 18,
-        scrappedQuantity: 2,
-        createdBy: adminUser.id,
-        technicianId: ktvUser.id,
+        code: `PNK-2026-${item.codeNum}`,
+        voucherDate: new Date(item.date),
+        importReason: 'old_meters_return',
+        unitId: khoVpId,
+        sourceUnitId: srcUnitId,
+        delivererName: 'Cán bộ kỹ thuật chi nhánh',
+        receiverName: 'Nguyễn Văn Tiến',
+        technicianName: 'Trần Kỹ Thuật',
+        customerDeptName: 'Phòng Quản lý Khách hàng',
+        createdBy: khoUser.id,
         status: 'completed',
-        notes: 'Sửa chữa đồng hồ quay vòng theo kế hoạch bảo dưỡng đợt 1',
+        totalAmount: estAmount,
+        notes: `Tiếp nhận đồng hồ tháo gỡ cũ từ đơn vị ${item.code} về xưởng bảo dưỡng, sửa chữa quay vòng`,
       },
     });
 
-    const part1 = partMap.get(1);
-    const part2 = partMap.get(2);
-    if (part1 && part2) {
-      await prisma.repairVoucherSparePart.createMany({
+    if (d15MeterId && item.countD15 > 0) {
+      await prisma.importVoucherDetail.create({
+        data: {
+          importVoucherId: impV.id,
+          meterId: d15MeterId,
+          quantity: item.countD15,
+          unitPrice: 80000,
+          lineAmount: item.countD15 * 80000,
+          status: 'sent_for_repair',
+          notes: 'Đồng hồ cũ tháo gỡ chờ kiểm định & sửa chữa',
+        },
+      });
+    }
+
+    if (d25MeterId && item.countD25 > 0) {
+      await prisma.importVoucherDetail.create({
+        data: {
+          importVoucherId: impV.id,
+          meterId: d25MeterId,
+          quantity: item.countD25,
+          unitPrice: 120000,
+          lineAmount: item.countD25 * 120000,
+          status: 'sent_for_repair',
+          notes: 'Đồng hồ DN25 cũ cần thay buồng đo',
+        },
+      });
+    }
+  }
+
+  // 9.2 Seed Contract Import Vouchers (Nhập kho theo hợp đồng)
+  console.log('Seeding Contract Import Vouchers...');
+  const batches = await prisma.contractBatch.findMany({ where: { contractId: contract.id } });
+  if (batches.length > 0) {
+    const batch1 = batches[0];
+    const impContract = await prisma.importVoucher.create({
+      data: {
+        code: 'PNK-2026-HD001',
+        voucherDate: new Date('2026-01-12'),
+        importReason: 'purchase_contract',
+        contractId: contract.id,
+        contractBatchId: batch1.id,
+        unitId: khoVpId,
+        delivererName: 'Đại diện Công ty CP Thiết bị Nước Sài Gòn',
+        receiverName: 'Nguyễn Văn Tiến',
+        technicianName: 'Trần Kỹ Thuật',
+        createdBy: khoUser.id,
+        status: 'completed',
+        totalAmount: 85000000,
+        notes: 'Nhập kho đợt 1 linh kiện đồng hồ D15 theo hợp đồng HD-2026-LINHKIEN',
+      },
+    });
+
+    if (part1 && part2 && part3) {
+      await prisma.importVoucherDetail.createMany({
         data: [
-          { repairVoucherId: repairVoucher.id, sparePartId: part1, quantity: 18, unitPrice: 14300 },
-          { repairVoucherId: repairVoucher.id, sparePartId: part2, quantity: 18, unitPrice: 22750 },
+          { importVoucherId: impContract.id, sparePartId: part1, quantity: 500, unitPrice: 14300, lineAmount: 500 * 14300, status: 'new', notes: 'Nắp D15 mới' },
+          { importVoucherId: impContract.id, sparePartId: part2, quantity: 400, unitPrice: 22750, lineAmount: 400 * 22750, status: 'new', notes: 'Chụp xoay D15 mới' },
+          { importVoucherId: impContract.id, sparePartId: part3, quantity: 300, unitPrice: 48000, lineAmount: 300 * 48000, status: 'new', notes: 'Mặt số D15 mới' },
         ],
       });
     }
+  }
 
-    const tp1UnitId = unitMap.get('XNCN-TP01');
-    if (tp1UnitId) {
-      await prisma.meterInspection.create({
-        data: {
-          code: 'PKD-2026-0001',
-          inspectionDate: new Date('2026-02-10'),
-          unitId: tp1UnitId,
-          meterId: d15MeterId,
-          quantityTotal: 25,
-          passedQuantity: 5,
-          repairQuantity: 18,
-          failedQuantity: 2,
-          inspectionType: 'incoming',
-          inspectorId: ktvUser.id,
-          notes: 'Tiếp nhận đồng hồ từ XN Cấp nước TP1 gửi về xưởng kiểm tra định kỳ',
-        },
-      });
+  // 9.3 Seed Repair Vouchers (Phiếu sửa chữa xưởng)
+  console.log('Seeding Workshop Repair Vouchers...');
+  if (d15MeterId) {
+    const repairsData = [
+      { code: 'PSC-2026-0001', date: '2026-02-15', inQty: 20, doneQty: 18, scrapQty: 2, mId: d15MeterId, notes: 'Bảo dưỡng sửa chữa đồng hồ D15 đợt 1' },
+      { code: 'PSC-2026-0002', date: '2026-02-28', inQty: 15, doneQty: 15, scrapQty: 0, mId: d15MeterId, notes: 'Thay thế buồng đo và gioăng mặt số D15' },
+      { code: 'PSC-2026-0003', date: '2026-03-10', inQty: 10, doneQty: 9, scrapQty: 1, mId: d25MeterId || d15MeterId, notes: 'Sửa chữa đồng hồ D25 chi nhánh Mộc Châu gửi' },
+      { code: 'PSC-2026-0004', date: '2026-03-20', inQty: 12, doneQty: 12, scrapQty: 0, mId: d15MeterId, notes: 'Vệ sinh, căn chỉnh vít bù lưu lượng và hiệu chuẩn' },
+      { code: 'PSC-2026-0005', date: '2026-04-05', inQty: 16, doneQty: 15, scrapQty: 1, mId: d15MeterId, notes: 'Hoàn tất sửa chữa lô ĐH cũ Yên Châu và Mai Sơn' },
+    ];
 
-      const exportVoucher = await prisma.exportVoucher.create({
+    for (const r of repairsData) {
+      const repVoucher = await prisma.repairVoucher.create({
         data: {
-          code: 'PXK-2026-0001',
-          voucherDate: new Date('2026-02-20'),
-          exportReason: 'unit_distribution',
-          unitId: khoVpId,
-          destinationUnitId: tp1UnitId,
-          createdBy: khoUser.id,
+          code: r.code,
+          repairDate: new Date(r.date),
+          workshopUnitId: khoVpId,
+          meterId: r.mId,
+          inputQuantity: r.inQty,
+          completedQuantity: r.doneQty,
+          scrappedQuantity: r.scrapQty,
+          createdBy: adminUser.id,
+          technicianId: ktvUser.id,
           status: 'completed',
-          totalAmount: 18 * 120000,
-          notes: 'Xuất trả 18 đồng hồ D15 đã sửa chữa hoàn tất cho TP1',
+          notes: r.notes,
         },
       });
 
-      await prisma.exportVoucherDetail.create({
-        data: {
-          exportVoucherId: exportVoucher.id,
-          meterId: d15MeterId,
-          quantity: 18,
-          unitPrice: 120000,
-          lineAmount: 18 * 120000,
-          status: 'circulating',
-          notes: 'Đồng hồ quay vòng xưởng đã kiểm định đạt',
-        },
-      });
+      if (part1 && part2) {
+        await prisma.repairVoucherSparePart.createMany({
+          data: [
+            { repairVoucherId: repVoucher.id, sparePartId: part1, quantity: r.doneQty, unitPrice: 14300 },
+            { repairVoucherId: repVoucher.id, sparePartId: part2, quantity: r.doneQty, unitPrice: 22750 },
+          ],
+        });
+      }
     }
+  }
+
+  // 9.4 Seed Export Vouchers (Phiếu xuất cấp phát cho các đơn vị)
+  console.log('Seeding Export Distribution Vouchers...');
+  const distPlans = [
+    { code: 'PXK-2026-0001', unitCode: 'XNCN-TP01', date: '2026-02-20', qty: 18, notes: 'Xuất cấp trả 18 đồng hồ D15 quay vòng sau sửa chữa cho TP1' },
+    { code: 'PXK-2026-0002', unitCode: 'XNCN-TP02', date: '2026-03-02', qty: 15, notes: 'Xuất cấp 15 đồng hồ D15 quay vòng phục vụ thay thế khách hàng' },
+    { code: 'PXK-2026-0003', unitCode: 'XNCN-MS',   date: '2026-03-12', qty: 10, notes: 'Cấp phát 10 đồng hồ D15 theo kế hoạch quý 1' },
+    { code: 'PXK-2026-0004', unitCode: 'CNCN-MC',   date: '2026-03-25', qty: 12, notes: 'Cấp phát đồng hồ thay thế định kỳ cho CNCN Mộc Châu' },
+    { code: 'PXK-2026-0005', unitCode: 'CNCN-YC',   date: '2026-04-10', qty: 10, notes: 'Xuất kho đồng hồ quay vòng cho CNCN Yên Châu' },
+    { code: 'PXK-2026-0006', unitCode: 'CNCN-SM',   date: '2026-04-18', qty: 8,  notes: 'Xuất cấp phát đồng hồ cho CNCN Sông Mã' },
+  ];
+
+  for (const dp of distPlans) {
+    const destUnitId = unitMap.get(dp.unitCode);
+    if (!destUnitId || !d15MeterId) continue;
+
+    const expV = await prisma.exportVoucher.create({
+      data: {
+        code: dp.code,
+        voucherDate: new Date(dp.date),
+        exportReason: 'unit_distribution',
+        unitId: khoVpId,
+        destinationUnitId: destUnitId,
+        delivererName: 'Nguyễn Văn Tiến',
+        receiverName: 'Đại diện nhận hàng chi nhánh',
+        createdBy: khoUser.id,
+        status: 'completed',
+        totalAmount: dp.qty * 120000,
+        notes: dp.notes,
+      },
+    });
+
+    await prisma.exportVoucherDetail.create({
+      data: {
+        exportVoucherId: expV.id,
+        meterId: d15MeterId,
+        quantity: dp.qty,
+        unitPrice: 120000,
+        lineAmount: dp.qty * 120000,
+        status: 'circulating',
+        notes: 'Đồng hồ quay vòng xưởng đã kiểm định đạt',
+      },
+    });
   }
 
   // 10. Sample Alerts
@@ -402,6 +539,7 @@ async function main() {
   });
 
   console.log('--- Database Seeding Completed Successfully! ---');
+
 }
 
 main()

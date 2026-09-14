@@ -1,20 +1,24 @@
 PRAGMA foreign_keys=OFF;
-BEGIN TRANSACTION;
-CREATE TABLE IF NOT EXISTS "User" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "email" TEXT NOT NULL,
-    "passwordHash" TEXT NOT NULL,
-    "fullName" TEXT NOT NULL,
-    "phone" TEXT,
-    "department" TEXT,
-    "unitId" INTEGER,
-    "role" TEXT NOT NULL DEFAULT 'kho',
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "lastLogin" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "User_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
+DELETE FROM AuditLog;
+DELETE FROM Alert;
+DELETE FROM RepairVoucherSparePart;
+DELETE FROM RepairVoucher;
+DELETE FROM MeterInspection;
+DELETE FROM TransferVoucherDetail;
+DELETE FROM TransferVoucher;
+DELETE FROM ExportVoucherDetail;
+DELETE FROM ExportVoucher;
+DELETE FROM ImportVoucherDetail;
+DELETE FROM ImportVoucher;
+DELETE FROM ContractBatch;
+DELETE FROM Contract;
+DELETE FROM Inventory;
+DELETE FROM MeterSparePart;
+DELETE FROM SparePart;
+DELETE FROM Meter;
+DELETE FROM User;
+DELETE FROM Employee;
+DELETE FROM Unit;
 INSERT INTO User VALUES(23,'admin@sowasuco.vn','sha256:5c3e7465678751e7719e02c1707dfd1868689554a005b577ec942476d2844c84','Phạm Phương Đông',NULL,'Phòng Quản lý Khách hàng',66,'admin',1,1789370598687,1789370597728,1789370598687);
 INSERT INTO User VALUES(24,'phamphuongdong@gmail.com','sha256:5c3e7465678751e7719e02c1707dfd1868689554a005b577ec942476d2844c84','Phạm Phương Đông',NULL,'Phòng Quản lý Khách hàng',66,'admin',1,NULL,1789370597728,1789370597728);
 INSERT INTO User VALUES(25,'thukho@sowasuco.vn','sha256:5c3e7465678751e7719e02c1707dfd1868689554a005b577ec942476d2844c84','Nguyễn Văn Kho',NULL,'Bộ phận Kho vật tư',66,'kho',1,1789370598688,1789370597729,1789370598689);
@@ -22,22 +26,6 @@ INSERT INTO User VALUES(26,'phieulinhdonhho.cnsl@gmail.com','sha256:5c3e74656787
 INSERT INTO User VALUES(27,'ktv@sowasuco.vn','sha256:5c3e7465678751e7719e02c1707dfd1868689554a005b577ec942476d2844c84','Trần Kỹ Thuật',NULL,'Xưởng sửa chữa đồng hồ',66,'ktv',1,1789370598690,1789370597730,1789370598691);
 INSERT INTO User VALUES(28,'ketoan@sowasuco.vn','sha256:5c3e7465678751e7719e02c1707dfd1868689554a005b577ec942476d2844c84','Lê Thị Kế Toán',NULL,'Phòng Kế hoạch Tài chính',66,'accountant',1,1789370598692,1789370597731,1789370598692);
 INSERT INTO User VALUES(29,'chinhanh.tp1@sowasuco.vn','sha256:5c3e7465678751e7719e02c1707dfd1868689554a005b577ec942476d2844c84','Lò Văn Nhánh',NULL,'Xí nghiệp Cấp nước TP 1',67,'unit_user',1,1789370598695,1789370597731,1789370598695);
-CREATE TABLE IF NOT EXISTS "Meter" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "code" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "category" TEXT NOT NULL,
-    "size" TEXT,
-    "unit" TEXT NOT NULL DEFAULT 'Cái',
-    "manufacturer" TEXT,
-    "yearManufacture" INTEGER,
-    "unitPrice" REAL DEFAULT 0,
-    "depreciationPrice" REAL DEFAULT 0,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
 INSERT INTO Meter VALUES(126,'ĐH015','Đồng hồ D15','Tiêu chuẩn',NULL,'Cái',NULL,NULL,350000.0,250000.0,1,NULL,1789370597732,1789370597732);
 INSERT INTO Meter VALUES(127,'ĐH015(SC)','Đồng hồ sửa chữa 015','Sửa chữa',NULL,'Cái',NULL,NULL,120000.0,80000.0,1,NULL,1789370597734,1789370597734);
 INSERT INTO Meter VALUES(128,'ĐH015(SC)-DV','Đồng hồ sửa chữa 015 đơn vị','Sửa chữa',NULL,'Cái',NULL,NULL,120000.0,80000.0,0,NULL,1789370597735,1789370597735);
@@ -63,20 +51,6 @@ INSERT INTO Meter VALUES(147,'ĐH15','Đồng hồ D15 metcon','Tiêu chuẩn',N
 INSERT INTO Meter VALUES(148,'D25FLD','Đồng hồ D25 Flodis','Ngoại nhập',NULL,'Cái',NULL,NULL,350000.0,250000.0,1,NULL,1789370597749,1789370597749);
 INSERT INTO Meter VALUES(149,'D32FLD','Đồng hồ D32 Flodis','Ngoại nhập',NULL,'Cái',NULL,NULL,350000.0,250000.0,1,NULL,1789370597750,1789370597750);
 INSERT INTO Meter VALUES(150,'D40FLT','Đồng hồ D40 Flostar','Tiêu chuẩn',NULL,'Cái',NULL,NULL,350000.0,250000.0,1,NULL,1789370597751,1789370597751);
-CREATE TABLE IF NOT EXISTS "SparePart" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "code" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "category" TEXT NOT NULL,
-    "size" TEXT,
-    "unit" TEXT NOT NULL DEFAULT 'Cái',
-    "unitPrice" REAL DEFAULT 0,
-    "minStock" INTEGER NOT NULL DEFAULT 10,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
 INSERT INTO SparePart VALUES(176,'VP-D15-001','Nắp đồng hồ D15','Nắp',NULL,'Cái',14300.0,20,1,NULL,1789370597752,1789370597752);
 INSERT INTO SparePart VALUES(177,'VP-D15-002','Chụp xoay đồng hồ D15','Chụp',NULL,'Cái',22750.0,20,1,NULL,1789370597753,1789370597753);
 INSERT INTO SparePart VALUES(178,'VP-D15-003','Gioăng sắt','Gioăng',NULL,'Cái',0.0,20,1,NULL,1789370597754,1789370597754);
@@ -112,15 +86,6 @@ INSERT INTO SparePart VALUES(207,'VP-033','Vít tinh chỉnh D40,50','Vít tinh 
 INSERT INTO SparePart VALUES(208,'VP-034','Lưới lọc 25,32','Linh kiện khác',NULL,'Cái',46500.0,20,1,NULL,1789370597778,1789370597778);
 INSERT INTO SparePart VALUES(209,'VP-035','Lưới lọc 40,50','Linh kiện khác',NULL,'Cái',86900.0,20,1,NULL,1789370597779,1789370597779);
 INSERT INTO SparePart VALUES(210,'VP-037','Vành Dưới Buồng đo D40-D50','Buồng đo',NULL,'Cái',0.0,20,1,NULL,1789370597780,1789370597780);
-CREATE TABLE IF NOT EXISTS "MeterSparePart" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "meterId" INTEGER NOT NULL,
-    "sparePartId" INTEGER NOT NULL,
-    "quantityPerSet" INTEGER NOT NULL DEFAULT 1,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "MeterSparePart_meterId_fkey" FOREIGN KEY ("meterId") REFERENCES "Meter" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "MeterSparePart_sparePartId_fkey" FOREIGN KEY ("sparePartId") REFERENCES "SparePart" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
 INSERT INTO MeterSparePart VALUES(61,126,176,1,1789370597781);
 INSERT INTO MeterSparePart VALUES(62,126,177,1,1789370597781);
 INSERT INTO MeterSparePart VALUES(63,126,178,1,1789370597781);
@@ -133,48 +98,11 @@ INSERT INTO MeterSparePart VALUES(69,126,184,1,1789370597784);
 INSERT INTO MeterSparePart VALUES(70,126,185,1,1789370597784);
 INSERT INTO MeterSparePart VALUES(71,126,186,1,1789370597785);
 INSERT INTO MeterSparePart VALUES(72,126,187,1,1789370597785);
-CREATE TABLE IF NOT EXISTS "Contract" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "contractNumber" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "supplierName" TEXT NOT NULL,
-    "signDate" DATETIME,
-    "totalValue" REAL DEFAULT 0,
-    "status" TEXT NOT NULL DEFAULT 'active',
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
 INSERT INTO Contract VALUES(7,'HD-2026-LINHKIEN','Hợp đồng mua sắm vật tư linh kiện sửa chữa đồng hồ năm 2026','Công ty Cổ phần Thiết bị & Công nghệ Nước Sài Gòn',1767571200000,350000000.0,'active','Hợp đồng mua theo nhiều đợt giao hàng trong năm 2026',1789370597786,1789370597786);
-CREATE TABLE IF NOT EXISTS "ContractBatch" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "contractId" INTEGER NOT NULL,
-    "batchNumber" INTEGER NOT NULL,
-    "batchName" TEXT NOT NULL,
-    "expectedDate" DATETIME,
-    "actualDate" DATETIME,
-    "status" TEXT NOT NULL DEFAULT 'completed',
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "ContractBatch_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "Contract" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
 INSERT INTO ContractBatch VALUES(24,7,1,'Đợt 1 - Cung ứng Tháng 01/2026',1768003200000,1768176000000,'completed','Đã nhập kho đủ theo phiếu giao nhận đợt 1',1789370597787,1789370597787);
 INSERT INTO ContractBatch VALUES(25,7,2,'Đợt 2 - Cung ứng Tháng 05/2026',1778803200000,1779062400000,'completed','Bổ sung linh kiện D15 đợt cao điểm',1789370597787,1789370597787);
 INSERT INTO ContractBatch VALUES(26,7,3,'Đợt 3 - Cung ứng Tháng 06/2026',1781049600000,1781395200000,'completed','Bổ sung chụp xoay và gioăng',1789370597787,1789370597787);
 INSERT INTO ContractBatch VALUES(27,7,4,'Đợt 4 - Cung ứng Tháng 07/2026',1784505600000,1784678400000,'completed','Đợt linh kiện định kỳ quý 3',1789370597787,1789370597787);
-CREATE TABLE IF NOT EXISTS "Inventory" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "unitId" INTEGER NOT NULL,
-    "meterId" INTEGER,
-    "sparePartId" INTEGER,
-    "quantity" INTEGER NOT NULL DEFAULT 0,
-    "status" TEXT NOT NULL DEFAULT 'new',
-    "lastUpdated" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Inventory_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "Inventory_meterId_fkey" FOREIGN KEY ("meterId") REFERENCES "Meter" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "Inventory_sparePartId_fkey" FOREIGN KEY ("sparePartId") REFERENCES "SparePart" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
 INSERT INTO Inventory VALUES(413,66,126,NULL,500,'new',1789370597733);
 INSERT INTO Inventory VALUES(414,66,134,NULL,4,'new',1789370597738);
 INSERT INTO Inventory VALUES(415,66,136,NULL,1,'new',1789370597740);
@@ -250,21 +178,6 @@ INSERT INTO Inventory VALUES(484,77,126,NULL,8,'sent_for_repair',1789370597793);
 INSERT INTO Inventory VALUES(485,78,126,NULL,45,'circulating',1789370597793);
 INSERT INTO Inventory VALUES(486,78,126,NULL,15,'new',1789370597793);
 INSERT INTO Inventory VALUES(487,78,126,NULL,8,'sent_for_repair',1789370597793);
-CREATE TABLE IF NOT EXISTS "ImportVoucherDetail" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "importVoucherId" INTEGER NOT NULL,
-    "meterId" INTEGER,
-    "sparePartId" INTEGER,
-    "quantity" INTEGER NOT NULL,
-    "unitPrice" REAL NOT NULL DEFAULT 0,
-    "lineAmount" REAL NOT NULL DEFAULT 0,
-    "status" TEXT NOT NULL DEFAULT 'new',
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ImportVoucherDetail_importVoucherId_fkey" FOREIGN KEY ("importVoucherId") REFERENCES "ImportVoucher" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "ImportVoucherDetail_meterId_fkey" FOREIGN KEY ("meterId") REFERENCES "Meter" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "ImportVoucherDetail_sparePartId_fkey" FOREIGN KEY ("sparePartId") REFERENCES "SparePart" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
 INSERT INTO ImportVoucherDetail VALUES(74,17,126,NULL,20,80000.0,1600000.0,'sent_for_repair','Đồng hồ cũ tháo gỡ chờ kiểm định & sửa chữa',1789370597795);
 INSERT INTO ImportVoucherDetail VALUES(75,17,130,NULL,5,120000.0,600000.0,'sent_for_repair','Đồng hồ DN25 cũ cần thay buồng đo',1789370597795);
 INSERT INTO ImportVoucherDetail VALUES(76,18,126,NULL,15,80000.0,1200000.0,'sent_for_repair','Đồng hồ cũ tháo gỡ chờ kiểm định & sửa chữa',1789370597796);
@@ -278,115 +191,23 @@ INSERT INTO ImportVoucherDetail VALUES(83,22,130,NULL,2,120000.0,240000.0,'sent_
 INSERT INTO ImportVoucherDetail VALUES(84,23,NULL,176,500,14300.0,7150000.0,'new','Nắp D15 mới',1789370597823);
 INSERT INTO ImportVoucherDetail VALUES(85,23,NULL,177,400,22750.0,9100000.0,'new','Chụp xoay D15 mới',1789370597823);
 INSERT INTO ImportVoucherDetail VALUES(86,23,NULL,178,300,48000.0,14400000.0,'new','Mặt số D15 mới',1789370597823);
-CREATE TABLE IF NOT EXISTS "ExportVoucher" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "code" TEXT NOT NULL,
-    "voucherDate" DATETIME NOT NULL,
-    "exportReason" TEXT NOT NULL,
-    "unitId" INTEGER NOT NULL,
-    "destinationUnitId" INTEGER,
-    "createdBy" INTEGER NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'draft',
-    "totalAmount" REAL NOT NULL DEFAULT 0,
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL, "delivererName" TEXT, "receiverName" TEXT,
-    CONSTRAINT "ExportVoucher_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "ExportVoucher_destinationUnitId_fkey" FOREIGN KEY ("destinationUnitId") REFERENCES "Unit" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "ExportVoucher_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
 INSERT INTO ExportVoucher VALUES(14,'PXK-2026-0001',1771545600000,'unit_distribution',66,67,25,'completed',2160000.0,'Xuất cấp trả 18 đồng hồ D15 quay vòng sau sửa chữa cho TP1',1789370597829,1789370597829,'Nguyễn Văn Tiến','Đại diện nhận hàng chi nhánh');
 INSERT INTO ExportVoucher VALUES(15,'PXK-2026-0002',1772409600000,'unit_distribution',66,68,25,'completed',1800000.0,'Xuất cấp 15 đồng hồ D15 quay vòng phục vụ thay thế khách hàng',1789370597830,1789370597830,'Nguyễn Văn Tiến','Đại diện nhận hàng chi nhánh');
 INSERT INTO ExportVoucher VALUES(16,'PXK-2026-0003',1773273600000,'unit_distribution',66,69,25,'completed',1200000.0,'Cấp phát 10 đồng hồ D15 theo kế hoạch quý 1',1789370597832,1789370597832,'Nguyễn Văn Tiến','Đại diện nhận hàng chi nhánh');
 INSERT INTO ExportVoucher VALUES(17,'PXK-2026-0004',1774396800000,'unit_distribution',66,70,25,'completed',1440000.0,'Cấp phát đồng hồ thay thế định kỳ cho CNCN Mộc Châu',1789370597833,1789370597833,'Nguyễn Văn Tiến','Đại diện nhận hàng chi nhánh');
 INSERT INTO ExportVoucher VALUES(18,'PXK-2026-0005',1775779200000,'unit_distribution',66,71,25,'completed',1200000.0,'Xuất kho đồng hồ quay vòng cho CNCN Yên Châu',1789370597834,1789370597834,'Nguyễn Văn Tiến','Đại diện nhận hàng chi nhánh');
 INSERT INTO ExportVoucher VALUES(19,'PXK-2026-0006',1776470400000,'unit_distribution',66,74,25,'completed',960000.0,'Xuất cấp phát đồng hồ cho CNCN Sông Mã',1789370597835,1789370597835,'Nguyễn Văn Tiến','Đại diện nhận hàng chi nhánh');
-CREATE TABLE IF NOT EXISTS "ExportVoucherDetail" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "exportVoucherId" INTEGER NOT NULL,
-    "meterId" INTEGER,
-    "sparePartId" INTEGER,
-    "quantity" INTEGER NOT NULL,
-    "unitPrice" REAL NOT NULL DEFAULT 0,
-    "lineAmount" REAL NOT NULL DEFAULT 0,
-    "status" TEXT NOT NULL DEFAULT 'new',
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ExportVoucherDetail_exportVoucherId_fkey" FOREIGN KEY ("exportVoucherId") REFERENCES "ExportVoucher" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "ExportVoucherDetail_meterId_fkey" FOREIGN KEY ("meterId") REFERENCES "Meter" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "ExportVoucherDetail_sparePartId_fkey" FOREIGN KEY ("sparePartId") REFERENCES "SparePart" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
 INSERT INTO ExportVoucherDetail VALUES(16,14,126,NULL,18,120000.0,2160000.0,'circulating','Đồng hồ quay vòng xưởng đã kiểm định đạt',1789370597830);
 INSERT INTO ExportVoucherDetail VALUES(17,15,126,NULL,15,120000.0,1800000.0,'circulating','Đồng hồ quay vòng xưởng đã kiểm định đạt',1789370597831);
 INSERT INTO ExportVoucherDetail VALUES(18,16,126,NULL,10,120000.0,1200000.0,'circulating','Đồng hồ quay vòng xưởng đã kiểm định đạt',1789370597832);
 INSERT INTO ExportVoucherDetail VALUES(19,17,126,NULL,12,120000.0,1440000.0,'circulating','Đồng hồ quay vòng xưởng đã kiểm định đạt',1789370597833);
 INSERT INTO ExportVoucherDetail VALUES(20,18,126,NULL,10,120000.0,1200000.0,'circulating','Đồng hồ quay vòng xưởng đã kiểm định đạt',1789370597834);
 INSERT INTO ExportVoucherDetail VALUES(21,19,126,NULL,8,120000.0,960000.0,'circulating','Đồng hồ quay vòng xưởng đã kiểm định đạt',1789370597835);
-CREATE TABLE IF NOT EXISTS "TransferVoucher" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "code" TEXT NOT NULL,
-    "voucherDate" DATETIME NOT NULL,
-    "fromUnitId" INTEGER NOT NULL,
-    "toUnitId" INTEGER NOT NULL,
-    "transferType" TEXT NOT NULL,
-    "createdBy" INTEGER NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'draft',
-    "totalQuantity" INTEGER NOT NULL DEFAULT 0,
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "TransferVoucher_fromUnitId_fkey" FOREIGN KEY ("fromUnitId") REFERENCES "Unit" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "TransferVoucher_toUnitId_fkey" FOREIGN KEY ("toUnitId") REFERENCES "Unit" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "TransferVoucher_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "TransferVoucherDetail" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "transferVoucherId" INTEGER NOT NULL,
-    "meterId" INTEGER,
-    "sparePartId" INTEGER,
-    "quantity" INTEGER NOT NULL,
-    "meterStatus" TEXT NOT NULL DEFAULT 'new',
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "TransferVoucherDetail_transferVoucherId_fkey" FOREIGN KEY ("transferVoucherId") REFERENCES "TransferVoucher" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "TransferVoucherDetail_meterId_fkey" FOREIGN KEY ("meterId") REFERENCES "Meter" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "TransferVoucherDetail_sparePartId_fkey" FOREIGN KEY ("sparePartId") REFERENCES "SparePart" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "RepairVoucher" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "code" TEXT NOT NULL,
-    "repairDate" DATETIME NOT NULL,
-    "workshopUnitId" INTEGER NOT NULL,
-    "meterId" INTEGER NOT NULL,
-    "inputQuantity" INTEGER NOT NULL,
-    "completedQuantity" INTEGER NOT NULL DEFAULT 0,
-    "scrappedQuantity" INTEGER NOT NULL DEFAULT 0,
-    "createdBy" INTEGER NOT NULL,
-    "technicianId" INTEGER,
-    "status" TEXT NOT NULL DEFAULT 'draft',
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL, "delivererName" TEXT, "receiverName" TEXT,
-    CONSTRAINT "RepairVoucher_workshopUnitId_fkey" FOREIGN KEY ("workshopUnitId") REFERENCES "Unit" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "RepairVoucher_meterId_fkey" FOREIGN KEY ("meterId") REFERENCES "Meter" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "RepairVoucher_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "RepairVoucher_technicianId_fkey" FOREIGN KEY ("technicianId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
 INSERT INTO RepairVoucher VALUES(19,'PSC-2026-0001',1771113600000,66,126,20,18,2,23,27,'completed','Bảo dưỡng sửa chữa đồng hồ D15 đợt 1',1789370597823,1789370597823,NULL,NULL);
 INSERT INTO RepairVoucher VALUES(20,'PSC-2026-0002',1772236800000,66,126,15,15,0,23,27,'completed','Thay thế buồng đo và gioăng mặt số D15',1789370597825,1789370597825,NULL,NULL);
 INSERT INTO RepairVoucher VALUES(21,'PSC-2026-0003',1773100800000,66,130,10,9,1,23,27,'completed','Sửa chữa đồng hồ D25 chi nhánh Mộc Châu gửi',1789370597826,1789370597826,NULL,NULL);
 INSERT INTO RepairVoucher VALUES(22,'PSC-2026-0004',1773964800000,66,126,12,12,0,23,27,'completed','Vệ sinh, căn chỉnh vít bù lưu lượng và hiệu chuẩn',1789370597827,1789370597827,NULL,NULL);
 INSERT INTO RepairVoucher VALUES(23,'PSC-2026-0005',1775347200000,66,126,16,15,1,23,27,'completed','Hoàn tất sửa chữa lô ĐH cũ Yên Châu và Mai Sơn',1789370597828,1789370597828,NULL,NULL);
-CREATE TABLE IF NOT EXISTS "RepairVoucherSparePart" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "repairVoucherId" INTEGER NOT NULL,
-    "sparePartId" INTEGER NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "unitPrice" REAL NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "RepairVoucherSparePart_repairVoucherId_fkey" FOREIGN KEY ("repairVoucherId") REFERENCES "RepairVoucher" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "RepairVoucherSparePart_sparePartId_fkey" FOREIGN KEY ("sparePartId") REFERENCES "SparePart" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
 INSERT INTO RepairVoucherSparePart VALUES(56,19,176,18,14300.0,1789370597824);
 INSERT INTO RepairVoucherSparePart VALUES(57,19,177,18,22750.0,1789370597824);
 INSERT INTO RepairVoucherSparePart VALUES(58,20,176,15,14300.0,1789370597825);
@@ -397,68 +218,8 @@ INSERT INTO RepairVoucherSparePart VALUES(62,22,176,12,14300.0,1789370597827);
 INSERT INTO RepairVoucherSparePart VALUES(63,22,177,12,22750.0,1789370597827);
 INSERT INTO RepairVoucherSparePart VALUES(64,23,176,15,14300.0,1789370597829);
 INSERT INTO RepairVoucherSparePart VALUES(65,23,177,15,22750.0,1789370597829);
-CREATE TABLE IF NOT EXISTS "MeterInspection" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "code" TEXT NOT NULL,
-    "inspectionDate" DATETIME NOT NULL,
-    "transferVoucherId" INTEGER,
-    "unitId" INTEGER NOT NULL,
-    "meterId" INTEGER NOT NULL,
-    "quantityTotal" INTEGER NOT NULL,
-    "passedQuantity" INTEGER NOT NULL DEFAULT 0,
-    "failedQuantity" INTEGER NOT NULL DEFAULT 0,
-    "repairQuantity" INTEGER NOT NULL DEFAULT 0,
-    "inspectionType" TEXT NOT NULL DEFAULT 'incoming',
-    "inspectorId" INTEGER,
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "MeterInspection_transferVoucherId_fkey" FOREIGN KEY ("transferVoucherId") REFERENCES "TransferVoucher" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "MeterInspection_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "MeterInspection_meterId_fkey" FOREIGN KEY ("meterId") REFERENCES "Meter" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "MeterInspection_inspectorId_fkey" FOREIGN KEY ("inspectorId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "AuditLog" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "userId" INTEGER NOT NULL,
-    "action" TEXT NOT NULL,
-    "tableName" TEXT NOT NULL,
-    "recordId" INTEGER,
-    "oldValue" TEXT,
-    "newValue" TEXT,
-    "changedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "AuditLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "Alert" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "unitId" INTEGER,
-    "meterId" INTEGER,
-    "sparePartId" INTEGER,
-    "alertType" TEXT NOT NULL DEFAULT 'low_stock',
-    "message" TEXT NOT NULL,
-    "isRead" BOOLEAN NOT NULL DEFAULT false,
-    "readAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Alert_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Alert_meterId_fkey" FOREIGN KEY ("meterId") REFERENCES "Meter" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Alert_sparePartId_fkey" FOREIGN KEY ("sparePartId") REFERENCES "SparePart" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
 INSERT INTO Alert VALUES(11,66,NULL,NULL,'low_stock','Mặt số đồng hồ D15 (VP-004) tồn kho chỉ còn 560 cái, sắp chạm mức cảnh báo.',0,NULL,1789370597836);
 INSERT INTO Alert VALUES(12,66,NULL,NULL,'low_stock','Đồng hồ D40 tồn kho hiện tại chỉ còn 4 cái.',0,NULL,1789370597836);
-CREATE TABLE IF NOT EXISTS "Employee" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "fullName" TEXT NOT NULL,
-    "code" TEXT,
-    "phone" TEXT,
-    "unitId" INTEGER,
-    "department" TEXT,
-    "position" TEXT,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Employee_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
 INSERT INTO Employee VALUES(1,'Nguyễn Văn Tiến','NVX-Số 02 ngõ 69 Tổ 8 Phường Chiềng Lề, TP Sơn La, tỉnh Sơn La','',NULL,'Xưởng đồng hồ','Thủ kho',1,'',1789091336553,1789115892884);
 INSERT INTO Employee VALUES(2,'Bùi Đức Duy','ĐTX-01','0',NULL,'Xưởng đồng hồ','Đội trưởng',1,'',1789091336553,1789097577137);
 INSERT INTO Employee VALUES(4,'Nguyễn Việt Hồng','NV-XNCN-TP01-01','',NULL,'XNCN Số 1','Giám đốc',1,'',1789091336555,1789115670860);
@@ -475,29 +236,6 @@ INSERT INTO Employee VALUES(22,'Nguyễn Văn Sơn','NV-CNCN-SM-01','',NULL,'CNC
 INSERT INTO Employee VALUES(24,'Đoàn Quang Việt','NV-CN-SC-01','',NULL,'CNCN Sốp Cộp','Giám đốc',1,'',1789091336560,1789115612674);
 INSERT INTO Employee VALUES(26,'Trần Xuân Long','NV-CNCN-QN-01','',NULL,'CNCN Quỳnh Nhai','Giám đốc',1,'',1789091336560,1789115520701);
 INSERT INTO Employee VALUES(28,'Lương Phương Thảo','NV-LPT',NULL,NULL,'Xưởng đồng hồ','Cán bộ lập phiếu',1,NULL,1789099449672,1789099449672);
-CREATE TABLE IF NOT EXISTS "ImportVoucher" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "code" TEXT NOT NULL,
-    "voucherDate" DATETIME NOT NULL,
-    "importReason" TEXT NOT NULL,
-    "contractId" INTEGER,
-    "contractBatchId" INTEGER,
-    "unitId" INTEGER NOT NULL,
-    "sourceUnitId" INTEGER,
-    "delivererName" TEXT,
-    "receiverName" TEXT,
-    "createdBy" INTEGER NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'draft',
-    "totalAmount" REAL NOT NULL DEFAULT 0,
-    "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL, "customerDeptName" TEXT, "technicianName" TEXT,
-    CONSTRAINT "ImportVoucher_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "Contract" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "ImportVoucher_contractBatchId_fkey" FOREIGN KEY ("contractBatchId") REFERENCES "ContractBatch" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "ImportVoucher_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "ImportVoucher_sourceUnitId_fkey" FOREIGN KEY ("sourceUnitId") REFERENCES "Unit" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "ImportVoucher_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
 INSERT INTO ImportVoucher VALUES(17,'PNK-2026-TH-001',1770508800000,'old_meters_return',NULL,NULL,66,67,'Cán bộ kỹ thuật chi nhánh','Nguyễn Văn Tiến',25,'completed',2000000.0,'Tiếp nhận đồng hồ tháo gỡ cũ từ đơn vị XNCN-TP01 về xưởng bảo dưỡng, sửa chữa quay vòng',1789370597794,1789370597794,'Phòng Quản lý Khách hàng','Trần Kỹ Thuật');
 INSERT INTO ImportVoucher VALUES(18,'PNK-2026-TH-002',1770854400000,'old_meters_return',NULL,NULL,66,68,'Cán bộ kỹ thuật chi nhánh','Nguyễn Văn Tiến',25,'completed',1200000.0,'Tiếp nhận đồng hồ tháo gỡ cũ từ đơn vị XNCN-TP02 về xưởng bảo dưỡng, sửa chữa quay vòng',1789370597796,1789370597796,'Phòng Quản lý Khách hàng','Trần Kỹ Thuật');
 INSERT INTO ImportVoucher VALUES(19,'PNK-2026-TH-003',1771977600000,'old_meters_return',NULL,NULL,66,69,'Cán bộ kỹ thuật chi nhánh','Nguyễn Văn Tiến',25,'completed',1200000.0,'Tiếp nhận đồng hồ tháo gỡ cũ từ đơn vị XNCN-MS về xưởng bảo dưỡng, sửa chữa quay vòng',1789370597797,1789370597797,'Phòng Quản lý Khách hàng','Trần Kỹ Thuật');
@@ -505,19 +243,6 @@ INSERT INTO ImportVoucher VALUES(20,'PNK-2026-TH-004',1772668800000,'old_meters_
 INSERT INTO ImportVoucher VALUES(21,'PNK-2026-TH-005',1773532800000,'old_meters_return',NULL,NULL,66,71,'Cán bộ kỹ thuật chi nhánh','Nguyễn Văn Tiến',25,'completed',800000.0,'Tiếp nhận đồng hồ tháo gỡ cũ từ đơn vị CNCN-YC về xưởng bảo dưỡng, sửa chữa quay vòng',1789370597800,1789370597800,'Phòng Quản lý Khách hàng','Trần Kỹ Thuật');
 INSERT INTO ImportVoucher VALUES(22,'PNK-2026-TH-006',1774137600000,'old_meters_return',NULL,NULL,66,74,'Cán bộ kỹ thuật chi nhánh','Nguyễn Văn Tiến',25,'completed',800000.0,'Tiếp nhận đồng hồ tháo gỡ cũ từ đơn vị CNCN-SM về xưởng bảo dưỡng, sửa chữa quay vòng',1789370597801,1789370597801,'Phòng Quản lý Khách hàng','Trần Kỹ Thuật');
 INSERT INTO ImportVoucher VALUES(23,'PNK-2026-HD001',1768176000000,'purchase_contract',7,24,66,NULL,'Đại diện Công ty CP Thiết bị Nước Sài Gòn','Nguyễn Văn Tiến',25,'completed',85000000.0,'Nhập kho đợt 1 linh kiện đồng hồ D15 theo hợp đồng HD-2026-LINHKIEN',1789370597818,1789370597818,NULL,'Trần Kỹ Thuật');
-CREATE TABLE IF NOT EXISTS "Unit" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "code" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "address" TEXT,
-    "phone" TEXT,
-    "email" TEXT,
-    "sortOrder" INTEGER NOT NULL DEFAULT 0,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
 INSERT INTO Unit VALUES(66,'KHO-VP','Xưởng đồng hồ','Kho/Xưởng','Ngõ 43, Tổ 6 Chiềng Lề - Phường Tô Hiệu - Tỉnh Sơn La','0212.3852.xxx',NULL,0,1,1789370597721,1789370597721);
 INSERT INTO Unit VALUES(67,'XNCN-TP01','XNCN TP số 1','Xí nghiệp','TP Sơn La','0212.3852.001',NULL,1,1,1789370597722,1789370597722);
 INSERT INTO Unit VALUES(68,'XNCN-TP02','XNCN TP số 2','Xí nghiệp','TP Sơn La','0212.3852.002',NULL,2,1,1789370597722,1789370597722);
@@ -548,79 +273,84 @@ INSERT INTO sqlite_sequence VALUES('ImportVoucherDetail',86);
 INSERT INTO sqlite_sequence VALUES('ImportVoucher',23);
 INSERT INTO sqlite_sequence VALUES('Employee',28);
 INSERT INTO sqlite_sequence VALUES('Unit',78);
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-CREATE INDEX "User_unitId_idx" ON "User"("unitId");
-CREATE INDEX "User_role_idx" ON "User"("role");
-CREATE UNIQUE INDEX "Meter_code_key" ON "Meter"("code");
-CREATE INDEX "Meter_category_idx" ON "Meter"("category");
-CREATE INDEX "Meter_size_idx" ON "Meter"("size");
-CREATE UNIQUE INDEX "SparePart_code_key" ON "SparePart"("code");
-CREATE INDEX "SparePart_category_idx" ON "SparePart"("category");
-CREATE INDEX "SparePart_size_idx" ON "SparePart"("size");
-CREATE INDEX "MeterSparePart_meterId_idx" ON "MeterSparePart"("meterId");
-CREATE INDEX "MeterSparePart_sparePartId_idx" ON "MeterSparePart"("sparePartId");
-CREATE UNIQUE INDEX "MeterSparePart_meterId_sparePartId_key" ON "MeterSparePart"("meterId", "sparePartId");
-CREATE UNIQUE INDEX "Contract_contractNumber_key" ON "Contract"("contractNumber");
-CREATE INDEX "Contract_status_idx" ON "Contract"("status");
-CREATE INDEX "Contract_contractNumber_idx" ON "Contract"("contractNumber");
-CREATE INDEX "ContractBatch_contractId_idx" ON "ContractBatch"("contractId");
-CREATE INDEX "ContractBatch_status_idx" ON "ContractBatch"("status");
-CREATE UNIQUE INDEX "ContractBatch_contractId_batchNumber_key" ON "ContractBatch"("contractId", "batchNumber");
-CREATE INDEX "Inventory_unitId_idx" ON "Inventory"("unitId");
-CREATE INDEX "Inventory_meterId_idx" ON "Inventory"("meterId");
-CREATE INDEX "Inventory_sparePartId_idx" ON "Inventory"("sparePartId");
-CREATE INDEX "Inventory_status_idx" ON "Inventory"("status");
-CREATE UNIQUE INDEX "Inventory_unitId_meterId_status_key" ON "Inventory"("unitId", "meterId", "status");
-CREATE UNIQUE INDEX "Inventory_unitId_sparePartId_status_key" ON "Inventory"("unitId", "sparePartId", "status");
-CREATE INDEX "ImportVoucherDetail_importVoucherId_idx" ON "ImportVoucherDetail"("importVoucherId");
-CREATE INDEX "ImportVoucherDetail_meterId_idx" ON "ImportVoucherDetail"("meterId");
-CREATE INDEX "ImportVoucherDetail_sparePartId_idx" ON "ImportVoucherDetail"("sparePartId");
-CREATE UNIQUE INDEX "ExportVoucher_code_key" ON "ExportVoucher"("code");
-CREATE INDEX "ExportVoucher_unitId_idx" ON "ExportVoucher"("unitId");
-CREATE INDEX "ExportVoucher_destinationUnitId_idx" ON "ExportVoucher"("destinationUnitId");
-CREATE INDEX "ExportVoucher_voucherDate_idx" ON "ExportVoucher"("voucherDate");
-CREATE INDEX "ExportVoucher_status_idx" ON "ExportVoucher"("status");
-CREATE INDEX "ExportVoucherDetail_exportVoucherId_idx" ON "ExportVoucherDetail"("exportVoucherId");
-CREATE INDEX "ExportVoucherDetail_meterId_idx" ON "ExportVoucherDetail"("meterId");
-CREATE INDEX "ExportVoucherDetail_sparePartId_idx" ON "ExportVoucherDetail"("sparePartId");
-CREATE UNIQUE INDEX "TransferVoucher_code_key" ON "TransferVoucher"("code");
-CREATE INDEX "TransferVoucher_fromUnitId_idx" ON "TransferVoucher"("fromUnitId");
-CREATE INDEX "TransferVoucher_toUnitId_idx" ON "TransferVoucher"("toUnitId");
-CREATE INDEX "TransferVoucher_voucherDate_idx" ON "TransferVoucher"("voucherDate");
-CREATE INDEX "TransferVoucher_status_idx" ON "TransferVoucher"("status");
-CREATE INDEX "TransferVoucherDetail_transferVoucherId_idx" ON "TransferVoucherDetail"("transferVoucherId");
-CREATE INDEX "TransferVoucherDetail_meterId_idx" ON "TransferVoucherDetail"("meterId");
-CREATE INDEX "TransferVoucherDetail_sparePartId_idx" ON "TransferVoucherDetail"("sparePartId");
-CREATE UNIQUE INDEX "RepairVoucher_code_key" ON "RepairVoucher"("code");
-CREATE INDEX "RepairVoucher_workshopUnitId_idx" ON "RepairVoucher"("workshopUnitId");
-CREATE INDEX "RepairVoucher_meterId_idx" ON "RepairVoucher"("meterId");
-CREATE INDEX "RepairVoucher_repairDate_idx" ON "RepairVoucher"("repairDate");
-CREATE INDEX "RepairVoucher_status_idx" ON "RepairVoucher"("status");
-CREATE INDEX "RepairVoucherSparePart_repairVoucherId_idx" ON "RepairVoucherSparePart"("repairVoucherId");
-CREATE INDEX "RepairVoucherSparePart_sparePartId_idx" ON "RepairVoucherSparePart"("sparePartId");
-CREATE UNIQUE INDEX "RepairVoucherSparePart_repairVoucherId_sparePartId_key" ON "RepairVoucherSparePart"("repairVoucherId", "sparePartId");
-CREATE UNIQUE INDEX "MeterInspection_code_key" ON "MeterInspection"("code");
-CREATE INDEX "MeterInspection_unitId_idx" ON "MeterInspection"("unitId");
-CREATE INDEX "MeterInspection_meterId_idx" ON "MeterInspection"("meterId");
-CREATE INDEX "MeterInspection_transferVoucherId_idx" ON "MeterInspection"("transferVoucherId");
-CREATE INDEX "MeterInspection_inspectionDate_idx" ON "MeterInspection"("inspectionDate");
-CREATE INDEX "AuditLog_userId_idx" ON "AuditLog"("userId");
-CREATE INDEX "AuditLog_tableName_recordId_idx" ON "AuditLog"("tableName", "recordId");
-CREATE INDEX "AuditLog_changedAt_idx" ON "AuditLog"("changedAt");
-CREATE INDEX "Alert_unitId_idx" ON "Alert"("unitId");
-CREATE INDEX "Alert_meterId_idx" ON "Alert"("meterId");
-CREATE INDEX "Alert_sparePartId_idx" ON "Alert"("sparePartId");
-CREATE INDEX "Alert_isRead_idx" ON "Alert"("isRead");
-CREATE UNIQUE INDEX "ImportVoucher_code_key" ON "ImportVoucher"("code");
-CREATE INDEX "ImportVoucher_unitId_idx" ON "ImportVoucher"("unitId");
-CREATE INDEX "ImportVoucher_sourceUnitId_idx" ON "ImportVoucher"("sourceUnitId");
-CREATE INDEX "ImportVoucher_contractId_idx" ON "ImportVoucher"("contractId");
-CREATE INDEX "ImportVoucher_contractBatchId_idx" ON "ImportVoucher"("contractBatchId");
-CREATE INDEX "ImportVoucher_voucherDate_idx" ON "ImportVoucher"("voucherDate");
-CREATE INDEX "ImportVoucher_status_idx" ON "ImportVoucher"("status");
-CREATE INDEX "Employee_unitId_idx" ON "Employee"("unitId");
-CREATE UNIQUE INDEX "Unit_code_key" ON "Unit"("code");
-CREATE INDEX "Unit_code_idx" ON "Unit"("code");
-CREATE INDEX "Unit_type_idx" ON "Unit"("type");
-CREATE INDEX "Unit_sortOrder_idx" ON "Unit"("sortOrder");
-COMMIT;
+-- Convert all DateTime columns in D1 from integer ms to ISO strings
+UPDATE User SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END,
+  lastLogin = CASE WHEN typeof(lastLogin) = 'integer' THEN datetime(lastLogin / 1000, 'unixepoch') ELSE lastLogin END;
+
+UPDATE Unit SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE Meter SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE SparePart SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE MeterSparePart SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END;
+
+UPDATE Contract SET
+  signDate = CASE WHEN typeof(signDate) = 'integer' THEN datetime(signDate / 1000, 'unixepoch') ELSE signDate END,
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE ContractBatch SET
+  expectedDate = CASE WHEN typeof(expectedDate) = 'integer' THEN datetime(expectedDate / 1000, 'unixepoch') ELSE expectedDate END,
+  actualDate = CASE WHEN typeof(actualDate) = 'integer' THEN datetime(actualDate / 1000, 'unixepoch') ELSE actualDate END,
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE Inventory SET
+  lastUpdated = CASE WHEN typeof(lastUpdated) = 'integer' THEN datetime(lastUpdated / 1000, 'unixepoch') ELSE lastUpdated END;
+
+UPDATE ImportVoucher SET
+  voucherDate = CASE WHEN typeof(voucherDate) = 'integer' THEN datetime(voucherDate / 1000, 'unixepoch') ELSE voucherDate END,
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE ImportVoucherDetail SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END;
+
+UPDATE ExportVoucher SET
+  voucherDate = CASE WHEN typeof(voucherDate) = 'integer' THEN datetime(voucherDate / 1000, 'unixepoch') ELSE voucherDate END,
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE ExportVoucherDetail SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END;
+
+UPDATE TransferVoucher SET
+  voucherDate = CASE WHEN typeof(voucherDate) = 'integer' THEN datetime(voucherDate / 1000, 'unixepoch') ELSE voucherDate END,
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE TransferVoucherDetail SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END;
+
+UPDATE RepairVoucher SET
+  repairDate = CASE WHEN typeof(repairDate) = 'integer' THEN datetime(repairDate / 1000, 'unixepoch') ELSE repairDate END,
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE RepairVoucherSparePart SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END;
+
+UPDATE MeterInspection SET
+  inspectionDate = CASE WHEN typeof(inspectionDate) = 'integer' THEN datetime(inspectionDate / 1000, 'unixepoch') ELSE inspectionDate END,
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;
+
+UPDATE AuditLog SET
+  changedAt = CASE WHEN typeof(changedAt) = 'integer' THEN datetime(changedAt / 1000, 'unixepoch') ELSE changedAt END;
+
+UPDATE Alert SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END;
+
+UPDATE Employee SET
+  createdAt = CASE WHEN typeof(createdAt) = 'integer' THEN datetime(createdAt / 1000, 'unixepoch') ELSE createdAt END,
+  updatedAt = CASE WHEN typeof(updatedAt) = 'integer' THEN datetime(updatedAt / 1000, 'unixepoch') ELSE updatedAt END;

@@ -1,9 +1,8 @@
-// SOWASUCO WM Service Worker v1.0
-const CACHE_NAME = 'sowasuco-pwa-v1';
+// SOWASUCO WM Service Worker v2.0
+const CACHE_NAME = 'sowasuco-pwa-v2';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [
-  '/',
   '/manifest.json',
   '/offline.html',
   '/icons/icon-192x192.png',
