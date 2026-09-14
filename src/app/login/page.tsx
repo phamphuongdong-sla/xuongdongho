@@ -29,17 +29,35 @@ function LoginContent() {
     e.preventDefault();
     setError(null);
 
-    const formData = new FormData();
-    formData.set('email', email);
-    formData.set('password', password);
-
     startTransition(async () => {
-      const result = await loginWithCredentials(formData);
-      if (result.success) {
-        router.push(callbackUrl);
-        router.refresh();
-      } else {
-        setError(result.error || 'Đăng nhập không thành công');
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          router.push(callbackUrl);
+          router.refresh();
+        } else {
+          setError(result.error || 'Đăng nhập không thành công');
+        }
+      } catch {
+        // Fallback to server action
+        const formData = new FormData();
+        formData.set('email', email);
+        formData.set('password', password);
+        const result = await loginWithCredentials(formData);
+        if (result.success) {
+          router.push(callbackUrl);
+          router.refresh();
+        } else {
+          setError(result.error || 'Đăng nhập không thành công');
+        }
       }
     });
   };

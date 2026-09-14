@@ -34,8 +34,8 @@ export async function middleware(request: NextRequest) {
 
   // 2. Unauthenticated user handling
   if (!session) {
-    // If requesting login page, allow through
-    if (pathname === '/login') {
+    // If requesting login page or auth APIs, allow through
+    if (pathname === '/login' || pathname.startsWith('/api/auth')) {
       return NextResponse.next();
     }
 

@@ -159,7 +159,16 @@ export function Navigation({ initialUser }: NavigationProps) {
 
   const handleLogout = async () => {
     startTransition(async () => {
-      await logout();
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch {
+        // Ignore network errors
+      }
+      try {
+        await logout();
+      } catch {
+        // Ignore
+      }
       router.push('/login');
       router.refresh();
     });
