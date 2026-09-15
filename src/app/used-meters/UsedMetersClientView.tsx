@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useMemo } from 'react';
 import { 
   Wrench, 
   Plus, 
@@ -71,6 +71,19 @@ export function UsedMetersClientView({
   // Search & Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [unitFilter, setUnitFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('2026');
+
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    years.add(2026);
+    vouchers.forEach((v) => {
+      if (v.voucherDate) {
+        const y = new Date(v.voucherDate).getFullYear();
+        if (!isNaN(y)) years.add(y);
+      }
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [vouchers]);
 
   // Form inputs
   const [sourceUnitId, setSourceUnitId] = useState<number>(branchUnits[0]?.id || 1);
@@ -266,8 +279,10 @@ export function UsedMetersClientView({
       v.items?.some((i: any) => i.meterName?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchUnit = unitFilter === 'all' || String(v.sourceUnitId) === unitFilter;
+    const vYear = v.voucherDate ? new Date(v.voucherDate).getFullYear().toString() : '';
+    const matchYear = yearFilter === 'all' || vYear === yearFilter;
 
-    return matchSearch && matchUnit;
+    return matchSearch && matchUnit && matchYear;
   });
 
   // Calculate statistics
@@ -370,6 +385,26 @@ export function UsedMetersClientView({
                   {u.name}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Year filter */}
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="border border-slate-200 rounded-lg px-2.5 py-2 text-xs font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="all">Tất cả các năm ({vouchers.length} phiếu)</option>
+              {availableYears.map((y) => {
+                const countY = vouchers.filter(v => v.voucherDate && new Date(v.voucherDate).getFullYear() === y).length;
+                return (
+                  <option key={y} value={String(y)}>
+                    Năm {y} ({countY} phiếu)
+                  </option>
+                );
+              })}
             </select>
           </div>
         </div>

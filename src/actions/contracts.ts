@@ -42,7 +42,6 @@ export async function getContractsData() {
         },
       },
       orderBy: { voucherDate: 'desc' },
-      take: 50,
     }),
     prisma.employee.findMany({
       where: { isActive: true },
@@ -429,50 +428,107 @@ export async function updateImportVoucher(
 
   await prisma.$transaction(async (tx) => {
     if (data.items && data.items.length > 0) {
-      // 1. Revert previous inventory increments (check current stock first)
+      // 1. Calculate net inventory changes per item (delta = newQty - oldQty)
+      // Build old map: key -> oldQty
+      const oldSpareMap = new Map<number, number>();
+      const oldMeterMap = new Map<number, number>();
       for (const d of existing.details) {
         if (d.sparePartId) {
-          const inv = await tx.inventory.findFirst({
-            where: { unitId: existing.unitId, sparePartId: d.sparePartId, status: 'new' },
-          });
-          // Only block if inventory record exists AND stock is less than the amount to revert.
-          // If no inventory record exists (data inconsistency), skip gracefully.
-          if (inv) {
-            const currentStock = inv.quantity || 0;
-            if (currentStock < d.quantity) {
-              const part = await tx.sparePart.findUnique({ where: { id: d.sparePartId } });
-              throw new Error(
-                `Không thể sửa đổi phiếu nhập: Linh kiện "${part?.name || d.sparePartId}" đã được xuất dùng (Tồn hiện tại: ${currentStock}, số lượng hoàn trả: ${d.quantity}).`
-              );
-            }
-            await tx.inventory.updateMany({
-              where: { unitId: existing.unitId, sparePartId: d.sparePartId, status: 'new' },
-              data: { quantity: { decrement: d.quantity } },
-            });
-          }
-          // else: no inventory record = nothing to revert, skip
+          oldSpareMap.set(d.sparePartId, (oldSpareMap.get(d.sparePartId) || 0) + d.quantity);
         } else if (d.meterId) {
-          const inv = await tx.inventory.findFirst({
-            where: { unitId: existing.unitId, meterId: d.meterId, status: 'new' },
-          });
-          if (inv) {
-            const currentStock = inv.quantity || 0;
-            if (currentStock < d.quantity) {
-              const meter = await tx.meter.findUnique({ where: { id: d.meterId } });
-              throw new Error(
-                `Không thể sửa đổi phiếu nhập: Đồng hồ "${meter?.name || d.meterId}" đã được xuất cấp (Tồn hiện tại: ${currentStock}, số lượng hoàn trả: ${d.quantity}).`
-              );
-            }
-            await tx.inventory.updateMany({
-              where: { unitId: existing.unitId, meterId: d.meterId, status: 'new' },
-              data: { quantity: { decrement: d.quantity } },
-            });
-          }
-          // else: no inventory record = nothing to revert, skip
+          oldMeterMap.set(d.meterId, (oldMeterMap.get(d.meterId) || 0) + d.quantity);
         }
       }
 
-      // 2. Re-create details
+      // Build new map: key -> newQty
+      const newSpareMap = new Map<number, number>();
+      const newMeterMap = new Map<number, number>();
+      for (const item of data.items) {
+        if (item.quantity <= 0) continue;
+        if (item.itemType === 'spare_part') {
+          newSpareMap.set(item.itemId, (newSpareMap.get(item.itemId) || 0) + item.quantity);
+        } else {
+          newMeterMap.set(item.itemId, (newMeterMap.get(item.itemId) || 0) + item.quantity);
+        }
+      }
+
+      // Check and apply net difference for spare parts
+      const allSpareIds = new Set([...oldSpareMap.keys(), ...newSpareMap.keys()]);
+      for (const spId of allSpareIds) {
+        const oldQ = oldSpareMap.get(spId) || 0;
+        const newQ = newSpareMap.get(spId) || 0;
+        const delta = newQ - oldQ; // Positive = add stock, Negative = reduce stock
+        if (delta !== 0) {
+          const inv = await tx.inventory.findFirst({
+            where: { unitId: existing.unitId, sparePartId: spId, status: 'new' },
+          });
+          const currentStock = inv?.quantity || 0;
+          if (delta < 0 && currentStock < Math.abs(delta)) {
+            const part = await tx.sparePart.findUnique({ where: { id: spId } });
+            throw new Error(
+              `Không thể giảm số lượng linh kiện "${part?.name || spId}" bớt ${Math.abs(delta)} vì tồn kho hiện tại chỉ còn ${currentStock}.`
+            );
+          }
+          await tx.inventory.upsert({
+            where: {
+              unitId_sparePartId_status: {
+                unitId: existing.unitId,
+                sparePartId: spId,
+                status: 'new',
+              },
+            },
+            create: {
+              unitId: existing.unitId,
+              sparePartId: spId,
+              quantity: Math.max(0, delta),
+              status: 'new',
+            },
+            update: {
+              quantity: { increment: delta },
+            },
+          });
+        }
+      }
+
+      // Check and apply net difference for meters
+      const allMeterIds = new Set([...oldMeterMap.keys(), ...newMeterMap.keys()]);
+      for (const mId of allMeterIds) {
+        const oldQ = oldMeterMap.get(mId) || 0;
+        const newQ = newMeterMap.get(mId) || 0;
+        const delta = newQ - oldQ;
+        if (delta !== 0) {
+          const inv = await tx.inventory.findFirst({
+            where: { unitId: existing.unitId, meterId: mId, status: 'new' },
+          });
+          const currentStock = inv?.quantity || 0;
+          if (delta < 0 && currentStock < Math.abs(delta)) {
+            const meter = await tx.meter.findUnique({ where: { id: mId } });
+            throw new Error(
+              `Không thể giảm số lượng đồng hồ "${meter?.name || mId}" bớt ${Math.abs(delta)} vì tồn kho hiện tại chỉ còn ${currentStock}.`
+            );
+          }
+          await tx.inventory.upsert({
+            where: {
+              unitId_meterId_status: {
+                unitId: existing.unitId,
+                meterId: mId,
+                status: 'new',
+              },
+            },
+            create: {
+              unitId: existing.unitId,
+              meterId: mId,
+              quantity: Math.max(0, delta),
+              status: 'new',
+            },
+            update: {
+              quantity: { increment: delta },
+            },
+          });
+        }
+      }
+
+      // 2. Re-create voucher details
       await tx.importVoucherDetail.deleteMany({ where: { importVoucherId: id } });
 
       for (const item of data.items) {
@@ -486,22 +542,6 @@ export async function updateImportVoucher(
               status: 'new',
             },
           });
-          await tx.inventory.upsert({
-            where: {
-              unitId_sparePartId_status: {
-                unitId: khoVp.id,
-                sparePartId: item.itemId,
-                status: 'new',
-              },
-            },
-            create: {
-              unitId: khoVp.id,
-              sparePartId: item.itemId,
-              quantity: item.quantity,
-              status: 'new',
-            },
-            update: { quantity: { increment: item.quantity } },
-          });
         } else {
           await tx.importVoucherDetail.create({
             data: {
@@ -510,22 +550,6 @@ export async function updateImportVoucher(
               quantity: item.quantity,
               status: 'new',
             },
-          });
-          await tx.inventory.upsert({
-            where: {
-              unitId_meterId_status: {
-                unitId: khoVp.id,
-                meterId: item.itemId,
-                status: 'new',
-              },
-            },
-            create: {
-              unitId: khoVp.id,
-              meterId: item.itemId,
-              quantity: item.quantity,
-              status: 'new',
-            },
-            update: { quantity: { increment: item.quantity } },
           });
         }
       }

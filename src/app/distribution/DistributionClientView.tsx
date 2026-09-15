@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   dispatchMultipleMetersToUnit, 
   deleteExportVoucher, 
@@ -17,7 +17,10 @@ import {
   Edit2,
   FileSpreadsheet,
   Boxes,
-  Printer
+  Printer,
+  Calendar,
+  Search,
+  X
 } from 'lucide-react';
 import { PrintVoucherModal, VoucherPrintData } from '@/components/vouchers/PrintVoucherModal';
 import { ParticipantSelect } from '@/components/vouchers/ParticipantSelect';
@@ -112,6 +115,42 @@ export function DistributionClientView({
   const [editTechnician, setEditTechnician] = useState<string>('Bùi Đức Duy');
   const [editNotes, setEditNotes] = useState<string>('');
   const [editItems, setEditItems] = useState<ExportItemRow[]>([]);
+
+  // Year & Search Filter for Export Voucher History
+  const [exportYearFilter, setExportYearFilter] = useState<string>('2026');
+  const [exportSearchTerm, setExportSearchTerm] = useState<string>('');
+
+  const availableExportYears = useMemo(() => {
+    const years = new Set<number>();
+    years.add(2026);
+    initialVouchers.forEach((v) => {
+      if (v.voucherDate) {
+        const y = new Date(v.voucherDate).getFullYear();
+        if (!isNaN(y)) years.add(y);
+      }
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [initialVouchers]);
+
+  const filteredExportVouchers = useMemo(() => {
+    return initialVouchers.filter((v) => {
+      const vYear = v.voucherDate ? new Date(v.voucherDate).getFullYear().toString() : '';
+      const matchYear = exportYearFilter === 'all' || vYear === exportYearFilter;
+      if (!matchYear) return false;
+
+      if (!exportSearchTerm.trim()) return true;
+      const term = exportSearchTerm.toLowerCase();
+      const matchCode = v.code?.toLowerCase().includes(term);
+      const matchUnit = v.destinationUnit?.name?.toLowerCase().includes(term);
+      const matchDeliverer = v.delivererName?.toLowerCase().includes(term);
+      const matchReceiver = v.receiverName?.toLowerCase().includes(term);
+      const matchNotes = v.notes?.toLowerCase().includes(term);
+      const matchItems = v.details?.some((d: any) =>
+        d.meter?.name?.toLowerCase().includes(term) || d.meter?.code?.toLowerCase().includes(term)
+      );
+      return matchCode || matchUnit || matchDeliverer || matchReceiver || matchNotes || matchItems;
+    });
+  }, [initialVouchers, exportYearFilter, exportSearchTerm]);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -537,21 +576,63 @@ export function DistributionClientView({
       {/* History Section (5 cols) */}
       <div className="lg:col-span-5 space-y-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-          <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-slate-600" />
-              Lịch Sử Phiếu Xuất Đồng Hồ
-            </h2>
-            <span className="text-xs text-slate-500 font-medium">
-              {initialVouchers.length} phiếu đã tạo
-            </span>
+          <div className="border-b border-slate-100 pb-3 space-y-2.5">
+            <div className="flex justify-between items-center">
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-slate-600" />
+                Lịch Sử Phiếu Xuất Đồng Hồ
+              </h2>
+              <span className="text-[11px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                {filteredExportVouchers.length} / {initialVouchers.length} phiếu
+              </span>
+            </div>
+
+            {/* Filter Bar: Year & Search */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="flex items-center gap-1 text-xs">
+                <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                <select
+                  value={exportYearFilter}
+                  onChange={(e) => setExportYearFilter(e.target.value)}
+                  className="border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+                >
+                  <option value="all">Tất cả các năm ({initialVouchers.length} phiếu)</option>
+                  {availableExportYears.map((y) => {
+                    const c = initialVouchers.filter(v => v.voucherDate && new Date(v.voucherDate).getFullYear() === y).length;
+                    return (
+                      <option key={y} value={String(y)}>Năm {y} ({c} phiếu)</option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div className="relative flex-1">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={exportSearchTerm}
+                  onChange={(e) => setExportSearchTerm(e.target.value)}
+                  placeholder="Tìm mã phiếu, đơn vị nhận, ghi chú..."
+                  className="w-full pl-8 pr-7 py-1 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
+                />
+                {exportSearchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setExportSearchTerm('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-            {initialVouchers.length === 0 ? (
-              <p className="text-xs text-slate-400 italic text-center py-6">Chưa có phiếu xuất nào.</p>
+            {filteredExportVouchers.length === 0 ? (
+              <p className="text-xs text-slate-400 italic text-center py-6">Không tìm thấy phiếu xuất nào phù hợp.</p>
             ) : (
-              initialVouchers.map((v) => (
+              filteredExportVouchers.map((v) => (
                 <div
                   key={v.id}
                   className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/40 hover:bg-white text-xs space-y-2 transition-colors shadow-xs"

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   createContract, 
   updateContract, 
-  deleteContract,
+  deleteContract, 
   createContractBatch, 
   updateContractBatch, 
   deleteContractBatch,
@@ -30,7 +31,10 @@ import {
   Sparkles,
   Download,
   Upload,
-  Printer
+  Printer,
+  Search,
+  Filter,
+  X
 } from 'lucide-react';
 import { PrintVoucherModal, VoucherPrintData } from '@/components/vouchers/PrintVoucherModal';
 import { ParticipantSelect } from '@/components/vouchers/ParticipantSelect';
@@ -82,7 +86,54 @@ export function ContractsClientView({
   const canEdit = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'kho' || currentUser.originalRole === 'admin') : true;
   const canDelete = canEdit;
 
+  const router = useRouter();
   const [selectedContractId, setSelectedContractId] = useState<number>(contracts[0]?.id || 1);
+
+  // Sync import vouchers list
+  const [importList, setImportList] = useState<any[]>(initialImports);
+  useEffect(() => {
+    setImportList(initialImports);
+  }, [initialImports]);
+
+  // Year filter & Search filter for Import Voucher History
+  const [importYearFilter, setImportYearFilter] = useState<string>('2026');
+  const [importSearchTerm, setImportSearchTerm] = useState<string>('');
+
+  const availableImportYears = useMemo(() => {
+    const years = new Set<number>();
+    years.add(2026);
+    importList.forEach((imp) => {
+      if (imp.voucherDate) {
+        const y = new Date(imp.voucherDate).getFullYear();
+        if (!isNaN(y)) years.add(y);
+      }
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [importList]);
+
+  const filteredImports = useMemo(() => {
+    return importList.filter((imp) => {
+      const impYear = imp.voucherDate ? new Date(imp.voucherDate).getFullYear().toString() : '';
+      const matchYear = importYearFilter === 'all' || impYear === importYearFilter;
+      if (!matchYear) return false;
+
+      if (!importSearchTerm.trim()) return true;
+      const term = importSearchTerm.toLowerCase();
+      const matchCode = imp.code?.toLowerCase().includes(term);
+      const matchContract = imp.contract?.contractNumber?.toLowerCase().includes(term);
+      const matchBatch = imp.batch?.batchName?.toLowerCase().includes(term);
+      const matchDeliverer = imp.delivererName?.toLowerCase().includes(term);
+      const matchReceiver = imp.receiverName?.toLowerCase().includes(term);
+      const matchNotes = imp.notes?.toLowerCase().includes(term);
+      const matchItems = imp.details?.some((d: any) => {
+        const name = d.meterId ? d.meter?.name : d.sparePart?.name;
+        const code = d.meterId ? d.meter?.code : d.sparePart?.code;
+        return name?.toLowerCase().includes(term) || code?.toLowerCase().includes(term);
+      });
+
+      return matchCode || matchContract || matchBatch || matchDeliverer || matchReceiver || matchNotes || matchItems;
+    });
+  }, [importList, importYearFilter, importSearchTerm]);
 
   // Modals
   const [showContractModal, setShowContractModal] = useState(false);
@@ -243,6 +294,7 @@ export function ContractsClientView({
         setSelectedContractId(res.contract.id);
       }
       setShowContractModal(false);
+      router.refresh();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -259,6 +311,7 @@ export function ContractsClientView({
       if (selectedContractId === id && contracts.length > 1) {
         setSelectedContractId(contracts[0].id);
       }
+      router.refresh();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -304,6 +357,7 @@ export function ContractsClientView({
         setMessage({ type: 'success', text: `Đã tạo đợt giao hàng mới thành công!` });
       }
       setShowBatchModal(false);
+      router.refresh();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -317,6 +371,7 @@ export function ContractsClientView({
     try {
       await deleteContractBatch(batchId);
       setMessage({ type: 'success', text: 'Đã xóa đợt giao hàng thành công!' });
+      router.refresh();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -328,9 +383,9 @@ export function ContractsClientView({
     setEditingImportVoucher(imp);
     setEditingVoucherDate(imp.voucherDate ? new Date(imp.voucherDate).toISOString().split('T')[0] : '');
     setImportNotes(imp.notes || '');
-    if (imp.customerDeptName || imp.delivererName) setCustomerDeptName(imp.customerDeptName || imp.delivererName);
-    if (imp.receiverName) setCreatorName(imp.receiverName);
-    if (imp.technicianName) setWorkshopManagerName(imp.technicianName);
+    setCustomerDeptName(imp.delivererName || imp.customerDeptName || 'Đại diện bên giao hàng');
+    setCreatorName(imp.receiverName || 'Nguyễn Văn Tiến');
+    setWorkshopManagerName(imp.technicianName || 'Bùi Đức Duy');
     if (imp.contractId) setSelectedContractId(imp.contractId);
     if (imp.contractBatchId) setImportBatchId(imp.contractBatchId);
     if (imp.details && imp.details.length > 0) {
@@ -339,7 +394,7 @@ export function ContractsClientView({
           itemType: d.meterId ? 'meter' : 'spare_part',
           itemId: d.meterId || d.sparePartId || 1,
           quantity: d.quantity || 1,
-          unitPrice: 0,
+          unitPrice: d.unitPrice || 0,
         }))
       );
     }
@@ -369,6 +424,8 @@ export function ContractsClientView({
           text: `Đã cập nhật thành công phiếu nhập ${editingImportVoucher.code} và đồng bộ tồn kho!`,
         });
         setEditingImportVoucher(null);
+        setShowImportModal(false);
+        router.refresh();
       } else {
         if (!importBatchId) {
           setMessage({ type: 'error', text: 'Vui lòng chọn đợt nhập theo hợp đồng!' });
@@ -388,8 +445,9 @@ export function ContractsClientView({
           type: 'success',
           text: `Đã nhập kho thành công phiếu ${res.code}! Đã tự động cập nhật tồn kho linh kiện và đồng hồ mới vào Kho VP.`,
         });
+        setShowImportModal(false);
+        router.refresh();
       }
-      setShowImportModal(false);
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -403,6 +461,7 @@ export function ContractsClientView({
     try {
       await deleteImportVoucher(voucherId);
       setMessage({ type: 'success', text: `Đã xóa phiếu nhập ${code} và hoàn trả tồn kho!` });
+      router.refresh();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -663,19 +722,84 @@ export function ContractsClientView({
 
       {/* Import History Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex justify-between items-center">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Truck className="w-4 h-4 text-brand-600" />
-              Lịch Sử Phiếu Nhập Kho (Đồng Hồ Mới & Linh Kiện)
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Danh sách các phiếu nhập kho đã thực hiện theo hợp đồng, hỗ trợ xóa và hoàn tác tồn kho
-            </p>
+        <div className="p-5 border-b border-slate-100 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Truck className="w-5 h-5 text-brand-600" />
+                Lịch Sử Phiếu Nhập Kho (Đồng Hồ Mới & Linh Kiện)
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Danh sách các phiếu nhập kho đã thực hiện theo hợp đồng & đợt. Hỗ trợ tra cứu theo năm, xem trước & in Mẫu 01-VT, sửa và xóa.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200">
+                Hiển thị {filteredImports.length} / {importList.length} phiếu
+              </span>
+            </div>
           </div>
-          <span className="text-xs font-semibold text-slate-500">
-            {initialImports.length} phiếu nhập
-          </span>
+
+          {/* Filter Bar: Year Filter & Search Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-slate-100">
+            {/* Year Selector */}
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+              <Calendar className="w-4 h-4 text-brand-600 shrink-0" />
+              <span className="text-slate-500 whitespace-nowrap">Năm xem:</span>
+              <select
+                value={importYearFilter}
+                onChange={(e) => setImportYearFilter(e.target.value)}
+                className="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 bg-white shadow-2xs hover:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+              >
+                <option value="all">Tất cả các năm ({importList.length} phiếu)</option>
+                {availableImportYears.map((y) => {
+                  const countInYear = importList.filter(
+                    (imp) => imp.voucherDate && new Date(imp.voucherDate).getFullYear() === y
+                  ).length;
+                  return (
+                    <option key={y} value={String(y)}>
+                      Năm {y} ({countInYear} phiếu)
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={importSearchTerm}
+                onChange={(e) => setImportSearchTerm(e.target.value)}
+                placeholder="Tìm theo số phiếu (PNK-2026...), số HĐ, đợt giao, người giao, mặt hàng..."
+                className="w-full pl-9 pr-8 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white placeholder:text-slate-400 font-medium"
+              />
+              {importSearchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setImportSearchTerm('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  title="Xóa tìm kiếm"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {(importYearFilter !== 'all' || importSearchTerm) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setImportYearFilter('all');
+                  setImportSearchTerm('');
+                }}
+                className="px-2.5 py-1.5 text-xs text-slate-600 hover:text-red-600 hover:bg-red-50 border border-slate-200 rounded-lg font-medium transition-colors whitespace-nowrap"
+              >
+                Đặt lại bộ lọc
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -691,14 +815,16 @@ export function ContractsClientView({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {initialImports.length === 0 ? (
+              {filteredImports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 italic">
-                    Chưa có phiếu nhập kho nào.
+                  <td colSpan={6} className="py-10 text-center text-slate-400 text-xs">
+                    <AlertCircle className="w-8 h-8 mx-auto text-slate-300 mb-1.5" />
+                    Không tìm thấy phiếu nhập kho nào phù hợp với bộ lọc (Năm {importYearFilter === 'all' ? 'tất cả' : importYearFilter}
+                    {importSearchTerm ? ` & từ khóa "${importSearchTerm}"` : ''}).
                   </td>
                 </tr>
               ) : (
-                initialImports.map((imp) => (
+                filteredImports.map((imp) => (
                   <tr key={imp.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3 px-4 font-mono font-bold text-brand-700">{imp.code}</td>
                     <td className="py-3 px-4 text-slate-600">
@@ -990,57 +1116,90 @@ export function ContractsClientView({
             </div>
 
             <form onSubmit={handleImportGoods} className="space-y-4 text-xs">
-              {/* Linked Contract & Batch Selectors */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    1. Hợp Đồng Mua Sắm
-                  </label>
-                  <select
-                    value={selectedContractId}
-                    onChange={(e) => {
-                      const newContractId = Number(e.target.value);
-                      setSelectedContractId(newContractId);
-                      const targetContract = contracts.find((c) => c.id === newContractId);
-                      if (targetContract && targetContract.batches?.length > 0) {
-                        setImportBatchId(targetContract.batches[0].id);
-                      } else {
-                        setImportBatchId(0);
-                      }
-                    }}
-                    className="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    required
-                  >
-                    {contracts.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.contractNumber} - {c.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Linked Contract & Batch Selectors (or Info when editing) */}
+              {editingImportVoucher ? (
+                <div className="bg-brand-50/70 p-3.5 rounded-xl border border-brand-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-brand-700 bg-brand-100/70 px-2 py-0.5 rounded tracking-wider">
+                      Đang chỉnh sửa phiếu nhập
+                    </span>
+                    <p className="text-sm font-bold text-slate-900 mt-1">
+                      Mã phiếu: <span className="font-mono text-brand-700">{editingImportVoucher.code}</span>
+                    </p>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      Hợp đồng: <strong className="text-slate-800">{editingImportVoucher.contract?.contractNumber}</strong>
+                      {editingImportVoucher.batch && (
+                        <span> — Đợt: <strong className="text-slate-800">{editingImportVoucher.batch.batchName}</strong></span>
+                      )}
+                    </p>
+                  </div>
 
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    2. Đợt Giao Hàng (Liên kết theo Hợp đồng trên)
-                  </label>
-                  <select
-                    value={importBatchId}
-                    onChange={(e) => setImportBatchId(Number(e.target.value))}
-                    className="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    required
-                  >
-                    {selectedContract?.batches && selectedContract.batches.length > 0 ? (
-                      selectedContract.batches.map((b: any) => (
-                        <option key={b.id} value={b.id}>
-                          Đợt {b.batchNumber}: {b.batchName} ({b.status === 'completed' ? 'Đã nhập' : 'Chờ nhập'})
-                        </option>
-                      ))
-                    ) : (
-                      <option value={0}>Hợp đồng này chưa có đợt giao nào</option>
-                    )}
-                  </select>
+                  <div className="w-full sm:w-auto bg-white p-2.5 rounded-lg border border-brand-200">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-brand-600" />
+                      Ngày Lập Phiếu
+                    </label>
+                    <input
+                      type="date"
+                      value={editingVoucherDate}
+                      onChange={(e) => setEditingVoucherDate(e.target.value)}
+                      className="w-full sm:w-44 text-xs border border-slate-300 rounded-md p-1.5 font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      1. Hợp Đồng Mua Sắm
+                    </label>
+                    <select
+                      value={selectedContractId}
+                      onChange={(e) => {
+                        const newContractId = Number(e.target.value);
+                        setSelectedContractId(newContractId);
+                        const targetContract = contracts.find((c) => c.id === newContractId);
+                        if (targetContract && targetContract.batches?.length > 0) {
+                          setImportBatchId(targetContract.batches[0].id);
+                        } else {
+                          setImportBatchId(0);
+                        }
+                      }}
+                      className="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      required
+                    >
+                      {contracts.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.contractNumber} - {c.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      2. Đợt Giao Hàng (Liên kết theo Hợp đồng trên)
+                    </label>
+                    <select
+                      value={importBatchId}
+                      onChange={(e) => setImportBatchId(Number(e.target.value))}
+                      className="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      required
+                    >
+                      {selectedContract?.batches && selectedContract.batches.length > 0 ? (
+                        selectedContract.batches.map((b: any) => (
+                          <option key={b.id} value={b.id}>
+                            Đợt {b.batchNumber}: {b.batchName} ({b.status === 'completed' ? 'Đã nhập' : 'Chờ nhập'})
+                          </option>
+                        ))
+                      ) : (
+                        <option value={0}>Hợp đồng này chưa có đợt giao nào</option>
+                      )}
+                    </select>
+                  </div>
+                </div>
+              )}
 
               {/* 3 Cán bộ ký phiếu theo quy định: Đại diện người giao hàng, Người lập phiếu, Xưởng đồng hồ */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
@@ -1075,20 +1234,6 @@ export function ContractsClientView({
                   required
                 />
               </div>
-
-              {editingImportVoucher && (
-                <div className="bg-amber-50 p-3 rounded-xl border border-amber-200">
-                  <label className="block font-semibold text-amber-900 mb-1">
-                    Ngày Lập Phiếu Nhập Kho (Đang chỉnh sửa)
-                  </label>
-                  <input
-                    type="date"
-                    value={editingVoucherDate}
-                    onChange={(e) => setEditingVoucherDate(e.target.value)}
-                    className="w-full text-xs border border-amber-300 rounded-lg p-2 bg-white font-semibold text-slate-900 focus:outline-none"
-                  />
-                </div>
-              )}
 
               {/* Items List */}
               <div className="space-y-2">
