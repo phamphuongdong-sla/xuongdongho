@@ -425,7 +425,7 @@ export function DistributionClientView({
                         >
                           {meters.map((meter) => (
                             <option key={meter.id} value={meter.id}>
-                              [{meter.code}] {meter.name}
+                              {meter.name}
                             </option>
                           ))}
                         </select>
@@ -812,7 +812,7 @@ export function DistributionClientView({
                           >
                             {meters.map((m) => (
                               <option key={m.id} value={m.id}>
-                                [{m.code}] {m.name}
+                                {m.name}
                               </option>
                             ))}
                           </select>
