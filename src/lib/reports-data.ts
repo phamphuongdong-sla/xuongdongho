@@ -8,6 +8,7 @@ import unitMonthlyExportsData from '@/data/unit-monthly-exports.json';
 import unitMonthlyReturnsData from '@/data/unit-monthly-returns.json';
 import unitYearlyPlansData from '@/data/unit-yearly-plans.json';
 import unitUsedYearlyPlansData from '@/data/unit-used-yearly-plans.json';
+import openingBalancesJson from '@/data/opening-balances.json';
 
 export async function getAggregatedReportsData() {
   const oracle = excelOracle as any;
@@ -16,7 +17,19 @@ export async function getAggregatedReportsData() {
   const unitMonthlyReturns = unitMonthlyReturnsData as any;
   const unitYearlyPlans = (unitYearlyPlansData || {}) as Record<string, number>;
   const unitUsedYearlyPlans = (unitUsedYearlyPlansData || {}) as Record<string, number>;
-  const openingOverrides = { meters: { '2026': { 'ĐH015(SC)': 13 } }, parts: {} };
+
+  // Load opening overrides from AppSetting table or bundled fallback
+  let openingOverrides = (openingBalancesJson || { meters: {}, parts: {} }) as any;
+  try {
+    const setting = await (prisma as any).$queryRawUnsafe(
+      `SELECT value FROM AppSetting WHERE key = 'opening_balances' LIMIT 1;`
+    );
+    if (setting && Array.isArray(setting) && setting.length > 0 && setting[0].value) {
+      openingOverrides = JSON.parse(setting[0].value);
+    }
+  } catch (e) {
+    // AppSetting table fallback
+  }
 
   // Fetch live meters, spare parts, units, vouchers from DB & current user session
   // Note: optimize queries by omitting unused deep nested relations on Cloudflare Workers
