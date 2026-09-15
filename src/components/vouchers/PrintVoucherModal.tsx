@@ -59,7 +59,10 @@ export function PrintVoucherModal({
     data.delivererName || (isUnitDistributionExport ? data.destinationOrSupplier : (data.customerDeptName || 'Đại diện bên giao hàng'))
   );
   const [creatorName, setCreatorName] = useState(
-    data.creatorName || data.receiverName || 'Nguyễn Văn Tiến'
+    data.creatorName || 'Phạm Phương Đông'
+  );
+  const [receiverName, setReceiverName] = useState(
+    data.receiverName || (isRepairMaterialExport ? 'Nguyễn Văn Tiến' : 'Đại diện đơn vị')
   );
   const [workshopManagerName, setWorkshopManagerName] = useState(
     data.workshopManagerName || data.technicianName || 'Bùi Đức Duy'
@@ -288,9 +291,9 @@ export function PrintVoucherModal({
       ];
     } else if (isRepairMaterialExport) {
       titleCells = [
-        { col: 1, span: 2, title: 'Người lập phiếu', sub: '(Ký, họ tên)', name: data.creatorName || 'Lương Phương Thảo' },
-        { col: 3, span: 2, title: 'Người nhận hàng', sub: '(Ký, họ tên)', name: data.receiverName || 'Nguyễn Văn Tiến' },
-        { col: 5, span: 3, title: 'Xưởng đồng hồ', sub: '(Ký, họ tên)', name: data.workshopManagerName || 'Bùi Đức Duy' },
+        { col: 1, span: 2, title: 'Người lập phiếu', sub: '(Ký, họ tên)', name: creatorName || data.creatorName || 'Lương Phương Thảo' },
+        { col: 3, span: 2, title: 'Người nhận hàng', sub: '(Ký, họ tên)', name: receiverName || data.receiverName || 'Nguyễn Văn Tiến' },
+        { col: 5, span: 3, title: 'Xưởng đồng hồ', sub: '(Ký, họ tên)', name: workshopManagerName || data.workshopManagerName || 'Bùi Đức Duy' },
       ];
     } else if (isUnitDistributionExport) {
       titleCells = [
@@ -300,8 +303,8 @@ export function PrintVoucherModal({
       ];
     } else {
       titleCells = [
-        { col: 1, span: 1, title: 'Người lập phiếu', sub: '(Ký, họ tên)', name: data.creatorName || 'Phạm Phương Đông' },
-        { col: 2, span: 1, title: isExport ? 'Người nhận' : 'Người giao', sub: '(Ký, họ tên)', name: isExport ? (data.receiverName || 'Đại diện đơn vị') : (data.delivererName || 'Bên giao hàng') },
+        { col: 1, span: 1, title: 'Người lập phiếu', sub: '(Ký, họ tên)', name: creatorName || data.creatorName || 'Phạm Phương Đông' },
+        { col: 2, span: 1, title: isExport ? 'Người nhận' : 'Người giao', sub: '(Ký, họ tên)', name: isExport ? (receiverName || data.receiverName || 'Đại diện đơn vị') : (delivererName || data.delivererName || 'Bên giao hàng') },
         { col: 3, span: 2, title: 'Thủ kho', sub: '(Ký, họ tên)', name: 'Nguyễn Văn Kho' },
         { col: 5, span: 1, title: 'Kế toán trưởng', sub: '(Ký, họ tên)', name: 'Phụ trách kế toán' },
         { col: 6, span: 2, title: 'Thủ trưởng đơn vị', sub: '(Ký, đóng dấu)', name: 'Ban Giám Đốc' },
@@ -801,9 +804,19 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Người lập phiếu</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      <span className="font-semibold text-slate-800 text-[11px]">
-                        {data.creatorName || 'Lương Phương Thảo'}
-                      </span>
+                      {isEditingSigners ? (
+                        <input
+                          type="text"
+                          value={creatorName}
+                          onChange={(e) => setCreatorName(e.target.value)}
+                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
+                          placeholder="Người lập..."
+                        />
+                      ) : (
+                        <span className="font-semibold text-slate-800 text-[11px]">
+                          {creatorName || data.creatorName || 'Lương Phương Thảo'}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -812,9 +825,19 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Người nhận hàng</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      <span className="font-semibold text-slate-800 text-[11px]">
-                        {data.receiverName || 'Nguyễn Văn Tiến'}
-                      </span>
+                      {isEditingSigners ? (
+                        <input
+                          type="text"
+                          value={receiverName}
+                          onChange={(e) => setReceiverName(e.target.value)}
+                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
+                          placeholder="Người nhận..."
+                        />
+                      ) : (
+                        <span className="font-semibold text-slate-800 text-[11px]">
+                          {receiverName || data.receiverName || 'Nguyễn Văn Tiến'}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -823,9 +846,19 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Xưởng đồng hồ</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      <span className="font-semibold text-slate-800 text-[11px]">
-                        {data.workshopManagerName || 'Bùi Đức Duy'}
-                      </span>
+                      {isEditingSigners ? (
+                        <input
+                          type="text"
+                          value={workshopManagerName}
+                          onChange={(e) => setWorkshopManagerName(e.target.value)}
+                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
+                          placeholder="Đại diện xưởng..."
+                        />
+                      ) : (
+                        <span className="font-semibold text-slate-800 text-[11px]">
+                          {workshopManagerName || data.workshopManagerName || 'Bùi Đức Duy'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

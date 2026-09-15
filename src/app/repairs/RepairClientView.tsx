@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   submitRepairVoucher, 
   submitSupplementRepairVoucher,
@@ -20,7 +21,9 @@ import {
   Edit2,
   ArrowRight,
   Printer,
-  User
+  User,
+  Search,
+  Calendar
 } from 'lucide-react';
 import { PrintVoucherModal, VoucherPrintData } from '@/components/vouchers/PrintVoucherModal';
 import { ParticipantSelect } from '@/components/vouchers/ParticipantSelect';
@@ -74,9 +77,50 @@ export function RepairClientView({
   currentUser?: SessionUser | null;
   initialMeterId?: number;
 }) {
+  const router = useRouter();
   const isAdmin = currentUser ? (currentUser.role === 'admin' || currentUser.originalRole === 'admin') : true;
   const canRepair = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'ktv' || currentUser.role === 'kho' || currentUser.originalRole === 'admin') : true;
   const canDelete = canRepair;
+
+  // Local vouchers list synced with server props
+  const [vouchersList, setVouchersList] = useState<any[]>(initialVouchers || []);
+
+  useEffect(() => {
+    setVouchersList(initialVouchers || []);
+  }, [initialVouchers]);
+
+  // Year filter & search state for History list
+  const [selectedYear, setSelectedYear] = useState<string>('2026');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    vouchersList.forEach((v) => {
+      if (v.repairDate) {
+        const y = new Date(v.repairDate).getFullYear().toString();
+        if (y && y !== 'NaN') years.add(y);
+      }
+    });
+    years.add('2026');
+    return Array.from(years).sort((a, b) => Number(b) - Number(a));
+  }, [vouchersList]);
+
+  const filteredVouchers = useMemo(() => {
+    return vouchersList.filter((v) => {
+      if (selectedYear !== 'all') {
+        const y = new Date(v.repairDate).getFullYear().toString();
+        if (y !== selectedYear) return false;
+      }
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        const codeMatch = v.code?.toLowerCase().includes(term);
+        const meterMatch = v.meter?.name?.toLowerCase().includes(term) || v.meter?.code?.toLowerCase().includes(term);
+        const notesMatch = v.notes?.toLowerCase().includes(term);
+        if (!codeMatch && !meterMatch && !notesMatch) return false;
+      }
+      return true;
+    });
+  }, [vouchersList, selectedYear, searchTerm]);
 
   // Participant states for Mẫu 02-VT: Phiếu Xin Lĩnh Vật Tư
   const [creatorName, setCreatorName] = useState<string>('Lương Phương Thảo');
@@ -251,6 +295,26 @@ export function RepairClientView({
           ? `Đã cập nhật phiếu sửa chữa ${res.code}. Tồn đồng hồ, linh kiện và báo cáo đã được tính lại.`
           : `Đã lập phiếu sửa chữa thành công (${res.code})! Đã xuất trừ linh kiện và nhập ${completedQty} ĐH vào kho quay vòng xưởng.`,
       });
+
+      if (editingVoucherId) {
+        setVouchersList((prev) =>
+          prev.map((v) =>
+            v.id === editingVoucherId
+              ? {
+                  ...v,
+                  inputQuantity: inputQty,
+                  completedQuantity: completedQty,
+                  scrappedQuantity: scrappedQty,
+                  notes,
+                  delivererName: creatorName,
+                  receiverName: receiverName,
+                  meter: availableRepairMeters.find((m) => m.id === selectedMeterId) || v.meter,
+                }
+              : v
+          )
+        );
+      }
+      router.refresh();
       setEditingVoucherId(null);
       // Reset default
       setInputQty(10);
@@ -272,6 +336,8 @@ export function RepairClientView({
         setMessage({ type: 'error', text: res.error || 'Lỗi khi xóa phiếu sửa chữa' });
         return;
       }
+      setVouchersList((prev) => prev.filter((v) => v.id !== id));
+      router.refresh();
       setMessage({ type: 'success', text: `Đã xóa phiếu ${code} và hoàn tác tồn kho thành công!` });
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
@@ -288,6 +354,10 @@ export function RepairClientView({
         setMessage({ type: 'error', text: res.error || 'Lỗi khi cập nhật ghi chú' });
         return;
       }
+      setVouchersList((prev) =>
+        prev.map((v) => (v.id === id ? { ...v, notes: editingNotes } : v))
+      );
+      router.refresh();
       setMessage({ type: 'success', text: 'Đã cập nhật ghi chú phiếu sửa chữa thành công!' });
       setEditingVoucherId(null);
     } catch (err: any) {
@@ -407,6 +477,7 @@ export function RepairClientView({
         type: 'success',
         text: `Đã lập phiếu xuất bổ sung thành công (${res.code})! Đã trừ ${suppQuantity} ĐH mới tại kho VP và tăng kho ĐH quay vòng xưởng.`,
       });
+      router.refresh();
       setSuppQuantity(10);
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Lỗi khi lưu phiếu xuất bổ sung' });
@@ -907,21 +978,56 @@ export function RepairClientView({
       {/* History Column (5 cols) */}
       <div className="lg:col-span-5 space-y-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-          <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-slate-600" />
-              Lịch Sử Phiếu Xưởng Sửa Chữa & Bổ Sung
-            </h2>
-            <span className="text-xs text-slate-500 font-medium">
-              {initialVouchers.length} phiếu
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-600" />
+                Lịch Sử Phiếu Sửa Chữa & Bổ Sung
+              </h2>
+              <p className="text-[11px] text-slate-400">
+                Hiển thị: <strong className="text-slate-700">{filteredVouchers.length}</strong> / {vouchersList.length} phiếu
+              </p>
+            </div>
+
+            {/* Filter by Year */}
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+              >
+                <option value="all">Tất cả các năm</option>
+                {availableYears.map((yr) => (
+                  <option key={yr} value={yr}>
+                    Năm {yr}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Tìm theo mã phiếu, loại đồng hồ, ghi chú..."
+              className="w-full text-xs pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
+            />
           </div>
 
           <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-            {initialVouchers.length === 0 ? (
-              <p className="text-xs text-slate-400 italic text-center py-6">Chưa có phiếu sửa chữa nào.</p>
+            {filteredVouchers.length === 0 ? (
+              <p className="text-xs text-slate-400 italic text-center py-6">
+                {searchTerm || selectedYear !== 'all'
+                  ? 'Không tìm thấy phiếu nào phù hợp với bộ lọc.'
+                  : 'Chưa có phiếu sửa chữa nào.'}
+              </p>
             ) : (
-              initialVouchers.map((v) => {
+              filteredVouchers.map((v) => {
                 const isSupplement = v.code.includes('BS') || v.notes?.includes('[Nguồn:') || v.notes?.includes('bổ sung');
                 return (
                   <div

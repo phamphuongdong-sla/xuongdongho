@@ -56,7 +56,7 @@ export async function getRepairsData() {
         },
       },
       orderBy: { repairDate: 'desc' },
-      take: 50,
+      take: 500,
     }),
     prisma.inventory.findMany({
       where: {
