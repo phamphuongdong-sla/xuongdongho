@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   dispatchMultipleMetersToUnit, 
   deleteExportVoucher, 
@@ -64,9 +65,15 @@ export function DistributionClientView({
   employees?: any[];
   currentUser?: SessionUser | null;
 }) {
+  const router = useRouter();
   const isAdmin = currentUser ? (currentUser.role === 'admin' || currentUser.originalRole === 'admin') : true;
   const canDispatch = currentUser ? (currentUser.role === 'admin' || currentUser.role === 'kho' || currentUser.originalRole === 'admin') : true;
   const canDelete = canDispatch;
+
+  const [vouchersList, setVouchersList] = useState<any[]>(initialVouchers);
+  useEffect(() => {
+    setVouchersList(initialVouchers);
+  }, [initialVouchers]);
 
   const [selectedUnitId, setSelectedUnitId] = useState<number>(units[0]?.id || 1);
   const [creatorName, setCreatorName] = useState<string>('Nguyễn Văn Tiến');
@@ -90,11 +97,12 @@ export function DistributionClientView({
       if (savedDeliverer) {
         setDelivererName(savedDeliverer);
       } else {
+        const u = units.find((x) => x.id === selectedUnitId);
         const uEmps = employees.filter((e) => e.unitId === selectedUnitId);
-        setDelivererName(uEmps[0]?.fullName || '');
+        setDelivererName(u?.name || uEmps[0]?.fullName || 'Đại diện đơn vị');
       }
     }
-  }, [selectedUnitId]);
+  }, [selectedUnitId, units, employees]);
 
   const [items, setItems] = useState<ExportItemRow[]>([
     { meterId: meters[0]?.id || 1, meterStatus: 'circulating', quantity: 15 },
@@ -115,6 +123,7 @@ export function DistributionClientView({
   const [editTechnician, setEditTechnician] = useState<string>('Bùi Đức Duy');
   const [editNotes, setEditNotes] = useState<string>('');
   const [editItems, setEditItems] = useState<ExportItemRow[]>([]);
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Year & Search Filter for Export Voucher History
   const [exportYearFilter, setExportYearFilter] = useState<string>('2026');
@@ -123,17 +132,17 @@ export function DistributionClientView({
   const availableExportYears = useMemo(() => {
     const years = new Set<number>();
     years.add(2026);
-    initialVouchers.forEach((v) => {
+    vouchersList.forEach((v) => {
       if (v.voucherDate) {
         const y = new Date(v.voucherDate).getFullYear();
         if (!isNaN(y)) years.add(y);
       }
     });
     return Array.from(years).sort((a, b) => b - a);
-  }, [initialVouchers]);
+  }, [vouchersList]);
 
   const filteredExportVouchers = useMemo(() => {
-    return initialVouchers.filter((v) => {
+    return vouchersList.filter((v) => {
       const vYear = v.voucherDate ? new Date(v.voucherDate).getFullYear().toString() : '';
       const matchYear = exportYearFilter === 'all' || vYear === exportYearFilter;
       if (!matchYear) return false;
@@ -150,7 +159,7 @@ export function DistributionClientView({
       );
       return matchCode || matchUnit || matchDeliverer || matchReceiver || matchNotes || matchItems;
     });
-  }, [initialVouchers, exportYearFilter, exportSearchTerm]);
+  }, [vouchersList, exportYearFilter, exportSearchTerm]);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -210,7 +219,7 @@ export function DistributionClientView({
       const res = await dispatchMultipleMetersToUnit({
         destinationUnitId: selectedUnitId,
         items: items.filter(i => i.quantity > 0),
-        delivererName,
+        delivererName: delivererName || selectedUnit.name,
         receiverName: creatorName,
         notes,
       });
@@ -221,6 +230,10 @@ export function DistributionClientView({
         localStorage.setItem('wm_default_dist_technician', technicianName);
       }
 
+      if ((res as any)?.voucher) {
+        setVouchersList(prev => [(res as any).voucher, ...prev]);
+      }
+
       const totalQty = items.reduce((acc, i) => acc + i.quantity, 0);
       setMessage({
         type: 'success',
@@ -228,6 +241,7 @@ export function DistributionClientView({
       });
       // Reset
       setItems([{ meterId: meters[0]?.id || 1, meterStatus: 'circulating', quantity: 10 }]);
+      router.refresh();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Lỗi khi lập phiếu xuất kho' });
     } finally {
@@ -240,7 +254,9 @@ export function DistributionClientView({
     setLoading(true);
     try {
       await deleteExportVoucher(id);
+      setVouchersList(prev => prev.filter(v => v.id !== id));
       setMessage({ type: 'success', text: `Đã xóa phiếu xuất ${code} và hoàn tác tồn kho thành công!` });
+      router.refresh();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -252,8 +268,10 @@ export function DistributionClientView({
     setLoading(true);
     try {
       await updateExportVoucherNotes(id, editingNotes);
+      setVouchersList(prev => prev.map(v => v.id === id ? { ...v, notes: editingNotes } : v));
       setMessage({ type: 'success', text: 'Đã cập nhật ghi chú phiếu xuất thành công!' });
       setEditingVoucherId(null);
+      router.refresh();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -262,16 +280,18 @@ export function DistributionClientView({
   };
 
   const handleOpenEditExport = (v: any) => {
+    setEditError(null);
     setEditingExportVoucher(v);
     const destId = v.destinationUnitId || units[0]?.id || 1;
     setEditDestUnitId(destId);
     setEditVoucherDate(v.voucherDate ? new Date(v.voucherDate).toISOString().split('T')[0] : '');
+    const targetUnit = units.find(u => u.id === destId);
+    const defaultUnitName = targetUnit?.name || 'Đại diện đơn vị';
     const savedCreator = typeof window !== 'undefined' ? localStorage.getItem('wm_default_dist_creator') : null;
     const savedTechnician = typeof window !== 'undefined' ? localStorage.getItem('wm_default_dist_technician') : null;
     const savedDeliverer = typeof window !== 'undefined' ? localStorage.getItem(`wm_default_dist_deliverer_${destId}`) : null;
-    const uEmps = employees.filter((e) => e.unitId === destId);
     setEditCreator(v.receiverName || savedCreator || 'Nguyễn Văn Tiến');
-    setEditDeliverer(v.delivererName || savedDeliverer || uEmps[0]?.fullName || '');
+    setEditDeliverer(v.delivererName || savedDeliverer || defaultUnitName);
     setEditTechnician(savedTechnician || 'Bùi Đức Duy');
     setEditNotes(v.notes || '');
     if (v.details && v.details.length > 0) {
@@ -290,8 +310,9 @@ export function DistributionClientView({
     e.preventDefault();
     if (!editingExportVoucher) return;
     setLoading(true);
+    setEditError(null);
     try {
-      await updateExportVoucher(editingExportVoucher.id, {
+      const res = await updateExportVoucher(editingExportVoucher.id, {
         destinationUnitId: editDestUnitId,
         voucherDate: editVoucherDate || undefined,
         delivererName: editDeliverer,
@@ -304,10 +325,33 @@ export function DistributionClientView({
         localStorage.setItem(`wm_default_dist_deliverer_${editDestUnitId}`, editDeliverer);
         localStorage.setItem('wm_default_dist_technician', editTechnician);
       }
+      
+      const updatedVoucher = (res as any)?.voucher;
+      if (updatedVoucher) {
+        setVouchersList(prev => prev.map(v => v.id === updatedVoucher.id ? updatedVoucher : v));
+      } else {
+        const targetUnit = units.find(u => u.id === editDestUnitId);
+        setVouchersList(prev => prev.map(v => {
+          if (v.id === editingExportVoucher.id) {
+            return {
+              ...v,
+              destinationUnitId: editDestUnitId,
+              destinationUnit: targetUnit || v.destinationUnit,
+              voucherDate: editVoucherDate ? new Date(editVoucherDate) : v.voucherDate,
+              delivererName: editDeliverer,
+              receiverName: editCreator,
+              notes: editNotes,
+            };
+          }
+          return v;
+        }));
+      }
+
       setMessage({ type: 'success', text: `Đã cập nhật thành công phiếu ${editingExportVoucher.code} và điều chỉnh tồn kho!` });
       setEditingExportVoucher(null);
-      window.location.reload();
+      router.refresh();
     } catch (err: any) {
+      setEditError(err.message || 'Lỗi khi cập nhật phiếu xuất');
       setMessage({ type: 'error', text: err.message || 'Lỗi khi cập nhật phiếu xuất' });
     } finally {
       setLoading(false);
@@ -364,9 +408,10 @@ export function DistributionClientView({
               onChange={(e) => {
                 const newId = Number(e.target.value);
                 setSelectedUnitId(newId);
+                const targetU = units.find((u) => u.id === newId);
                 const saved = typeof window !== 'undefined' ? localStorage.getItem(`wm_default_dist_deliverer_${newId}`) : null;
                 const uEmps = employees.filter((emp) => emp.unitId === newId);
-                setDelivererName(saved || uEmps[0]?.fullName || '');
+                setDelivererName(saved || targetU?.name || uEmps[0]?.fullName || 'Đại diện đơn vị');
               }}
               className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 bg-white font-medium text-slate-900 focus:ring-2 focus:ring-brand-500 focus:outline-none"
             >
@@ -396,14 +441,23 @@ export function DistributionClientView({
             />
 
             <ParticipantSelect
-              label="Người Giao (Cán bộ theo đơn vị)"
+              label="Người Giao (Tên Đơn Vị Xin Lĩnh)"
               value={delivererName}
               onChange={setDelivererName}
-              options={unitEmployees.length > 0 ? unitEmployees : employees}
+              options={(() => {
+                const targetU = units.find((u) => u.id === selectedUnitId);
+                const uName = targetU?.name || 'Đơn vị xin lĩnh';
+                const branchEmps = employees.filter((e) => e.unitId === selectedUnitId);
+                return [
+                  { fullName: uName, position: 'Đơn vị xin lĩnh', department: uName },
+                  { fullName: `Đại diện ${uName}`, position: 'Đại diện', department: uName },
+                  ...branchEmps,
+                ];
+              })()}
               defaultKey={`wm_default_dist_deliverer_${selectedUnitId}`}
-              defaultFallback={unitEmployees[0]?.fullName || `Đại diện ${selectedUnit.displayName}`}
-              placeholder="Chọn cán bộ theo đơn vị"
-              helpText={`Bên đơn vị: ${selectedUnit.displayName}`}
+              defaultFallback={selectedUnit.name || 'Đại diện đơn vị'}
+              placeholder="Chọn hoặc nhập tên đơn vị / người giao"
+              helpText={`Gán tên đơn vị: ${selectedUnit.displayName}`}
               required
             />
 
@@ -802,6 +856,13 @@ export function DistributionClientView({
             </div>
 
             <form onSubmit={handleSaveEditExport} className="space-y-4 text-xs">
+              {editError && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                  <span>{editError}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Đơn Vị Nhận (*)</label>
@@ -810,9 +871,10 @@ export function DistributionClientView({
                     onChange={(e) => {
                       const newId = Number(e.target.value);
                       setEditDestUnitId(newId);
+                      const targetU = units.find((u) => u.id === newId);
                       const saved = typeof window !== 'undefined' ? localStorage.getItem(`wm_default_dist_deliverer_${newId}`) : null;
                       const uEmps = employees.filter((emp) => emp.unitId === newId);
-                      setEditDeliverer(saved || uEmps[0]?.fullName || '');
+                      setEditDeliverer(saved || targetU?.name || uEmps[0]?.fullName || 'Đại diện đơn vị');
                     }}
                     className="w-full border border-slate-200 rounded-lg p-2 bg-white font-medium focus:outline-none"
                     required
@@ -847,12 +909,22 @@ export function DistributionClientView({
                   placeholder="Chọn người lập phiếu"
                 />
                 <ParticipantSelect
-                  label="Người Giao (Cán bộ đơn vị)"
+                  label="Người Giao (Tên Đơn Vị Xin Lĩnh)"
                   value={editDeliverer}
                   onChange={setEditDeliverer}
-                  options={employees.filter((e) => e.unitId === editDestUnitId)}
+                  options={(() => {
+                    const targetU = units.find(u => u.id === editDestUnitId);
+                    const uName = targetU?.name || 'Đơn vị xin lĩnh';
+                    const branchEmps = employees.filter((e) => e.unitId === editDestUnitId);
+                    return [
+                      { fullName: uName, position: 'Đơn vị xin lĩnh', department: uName },
+                      { fullName: `Đại diện ${uName}`, position: 'Đại diện', department: uName },
+                      ...branchEmps,
+                    ];
+                  })()}
                   defaultKey={`wm_default_dist_deliverer_${editDestUnitId}`}
-                  placeholder="Chọn người giao"
+                  defaultFallback={units.find(u => u.id === editDestUnitId)?.name || 'Đại diện đơn vị'}
+                  placeholder="Chọn hoặc nhập tên đơn vị / người giao"
                 />
                 <ParticipantSelect
                   label="Phụ Trách Kỹ Thuật"

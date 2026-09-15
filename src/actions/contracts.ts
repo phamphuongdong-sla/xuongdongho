@@ -4,6 +4,14 @@ import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { requireAuth, getSessionUser } from '@/lib/auth';
 
+function safeRevalidatePath(path: string) {
+  try {
+    revalidatePath(path);
+  } catch {
+    // Ignore when static generation store or request context is missing
+  }
+}
+
 export async function getContractsData() {
   const khoVp = await prisma.unit.findFirst({
     where: { OR: [{ code: 'KHO-VP' }, { type: 'Kho/Xưởng' }, { sortOrder: 0 }] },
@@ -392,10 +400,10 @@ export async function deleteImportVoucher(id: number) {
     await tx.importVoucher.delete({ where: { id } });
   });
 
-  revalidatePath('/contracts');
-  revalidatePath('/reports');
-  revalidatePath('/unit-reports');
-  revalidatePath('/');
+  safeRevalidatePath('/contracts');
+  safeRevalidatePath('/reports');
+  safeRevalidatePath('/unit-reports');
+  safeRevalidatePath('/');
   return { success: true };
 }
 
@@ -405,6 +413,7 @@ export async function updateImportVoucher(
     voucherDate?: string;
     notes?: string;
     customerDeptName?: string;
+    delivererName?: string;
     creatorName?: string;
     workshopManagerName?: string;
     items?: Array<{
@@ -555,22 +564,38 @@ export async function updateImportVoucher(
       }
     }
 
+    const targetDeliverer = data.delivererName !== undefined ? data.delivererName : (data.customerDeptName !== undefined ? data.customerDeptName : existing.delivererName);
+
     await tx.importVoucher.update({
       where: { id },
       data: {
         voucherDate: data.voucherDate ? new Date(data.voucherDate) : existing.voucherDate,
         notes: data.notes !== undefined ? data.notes : existing.notes,
-        delivererName: data.customerDeptName !== undefined ? data.customerDeptName : existing.delivererName,
+        delivererName: targetDeliverer,
         receiverName: data.creatorName !== undefined ? data.creatorName : existing.receiverName,
         technicianName: data.workshopManagerName !== undefined ? data.workshopManagerName : existing.technicianName,
-        customerDeptName: data.customerDeptName !== undefined ? data.customerDeptName : existing.customerDeptName,
+        customerDeptName: targetDeliverer,
       },
     });
   });
 
-  revalidatePath('/contracts');
-  revalidatePath('/reports');
-  revalidatePath('/unit-reports');
-  revalidatePath('/');
-  return { success: true };
+  const updatedVoucher = await prisma.importVoucher.findUnique({
+    where: { id },
+    include: {
+      contract: true,
+      batch: true,
+      details: {
+        include: {
+          meter: true,
+          sparePart: true,
+        },
+      },
+    },
+  });
+
+  safeRevalidatePath('/contracts');
+  safeRevalidatePath('/reports');
+  safeRevalidatePath('/unit-reports');
+  safeRevalidatePath('/');
+  return { success: true, voucher: updatedVoucher };
 }

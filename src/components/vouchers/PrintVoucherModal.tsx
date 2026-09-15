@@ -56,13 +56,16 @@ export function PrintVoucherModal({
 
   // Editable signers state
   const [delivererName, setDelivererName] = useState(
-    data.delivererName || data.customerDeptName || 'Đại diện bên giao hàng'
+    data.delivererName || (isUnitDistributionExport ? data.destinationOrSupplier : (data.customerDeptName || 'Đại diện bên giao hàng'))
   );
   const [creatorName, setCreatorName] = useState(
     data.creatorName || data.receiverName || 'Nguyễn Văn Tiến'
   );
   const [workshopManagerName, setWorkshopManagerName] = useState(
     data.workshopManagerName || data.technicianName || 'Bùi Đức Duy'
+  );
+  const [technicianName, setTechnicianName] = useState(
+    data.technicianName || 'Bùi Đức Duy'
   );
   const [isEditingSigners, setIsEditingSigners] = useState(false);
 
@@ -291,9 +294,9 @@ export function PrintVoucherModal({
       ];
     } else if (isUnitDistributionExport) {
       titleCells = [
-        { col: 1, span: 2, title: 'Người lập phiếu', sub: '(Ký, họ tên)', name: data.creatorName || 'Nguyễn Văn Tiến' },
-        { col: 3, span: 2, title: 'Người giao', sub: '(Ký, họ tên)', name: data.delivererName || 'Đại diện đơn vị' },
-        { col: 5, span: 3, title: 'Phụ trách kỹ thuật', sub: '(Ký, họ tên)', name: data.technicianName || 'Bùi Đức Duy' },
+        { col: 1, span: 2, title: 'Người lập phiếu', sub: '(Ký, họ tên)', name: creatorName || data.creatorName || 'Nguyễn Văn Tiến' },
+        { col: 3, span: 2, title: 'Người giao', sub: '(Ký, họ tên)', name: delivererName || data.delivererName || data.destinationOrSupplier || 'Đại diện đơn vị' },
+        { col: 5, span: 3, title: 'Phụ trách kỹ thuật', sub: '(Ký, họ tên)', name: technicianName || data.technicianName || 'Bùi Đức Duy' },
       ];
     } else {
       titleCells = [
@@ -827,27 +830,47 @@ export function PrintVoucherModal({
                   </div>
                 </div>
               ) : isUnitDistributionExport ? (
-                /* PHIẾU XIN LĨNH (Xuất ĐH 12 đơn vị): Người lập phiếu (Nguyễn Văn Tiến), Người giao (chọn theo đơn vị), Phụ trách kỹ thuật (Bùi Đức Duy) */
+                /* PHIẾU XIN LĨNH (Xuất ĐH 12 đơn vị): Người lập phiếu (Nguyễn Văn Tiến), Người giao (tên đơn vị), Phụ trách kỹ thuật (Bùi Đức Duy) */
                 <div className="voucher-signature-grid grid grid-cols-3 gap-4 text-center text-[12px]">
                   {/* 1. Người lập phiếu */}
                   <div className="space-y-1">
                     <p className="font-bold text-slate-900">Người lập phiếu</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      <span className="font-semibold text-slate-800 text-[11px]">
-                        {data.creatorName || 'Nguyễn Văn Tiến'}
-                      </span>
+                      {isEditingSigners ? (
+                        <input
+                          type="text"
+                          value={creatorName}
+                          onChange={(e) => setCreatorName(e.target.value)}
+                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
+                          placeholder="Người lập..."
+                        />
+                      ) : (
+                        <span className="font-semibold text-slate-800 text-[11px]">
+                          {creatorName || data.creatorName || 'Nguyễn Văn Tiến'}
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   {/* 2. Người giao */}
                   <div className="space-y-1">
-                    <p className="font-bold text-slate-900">Người giao</p>
+                    <p className="font-bold text-slate-900">Người giao (Đơn vị)</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      <span className="font-semibold text-slate-800 text-[11px]">
-                        {data.delivererName || 'Đại diện đơn vị'}
-                      </span>
+                      {isEditingSigners ? (
+                        <input
+                          type="text"
+                          value={delivererName}
+                          onChange={(e) => setDelivererName(e.target.value)}
+                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
+                          placeholder="Người giao / Tên đơn vị..."
+                        />
+                      ) : (
+                        <span className="font-semibold text-slate-800 text-[11px]">
+                          {delivererName || data.delivererName || data.destinationOrSupplier || 'Đại diện đơn vị'}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -856,9 +879,19 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Phụ trách kỹ thuật</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      <span className="font-semibold text-slate-800 text-[11px]">
-                        {data.technicianName || 'Bùi Đức Duy'}
-                      </span>
+                      {isEditingSigners ? (
+                        <input
+                          type="text"
+                          value={technicianName}
+                          onChange={(e) => setTechnicianName(e.target.value)}
+                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
+                          placeholder="Phụ trách KT..."
+                        />
+                      ) : (
+                        <span className="font-semibold text-slate-800 text-[11px]">
+                          {technicianName || data.technicianName || 'Bùi Đức Duy'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

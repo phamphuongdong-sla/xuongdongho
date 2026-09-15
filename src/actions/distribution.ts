@@ -5,6 +5,14 @@ import { revalidatePath } from 'next/cache';
 import { validateExportStock } from '@/services/inventory.service';
 import { requireAuth, getSessionUser } from '@/lib/auth';
 
+function safeRevalidatePath(path: string) {
+  try {
+    revalidatePath(path);
+  } catch {
+    // Ignore when static generation store or request context is missing
+  }
+}
+
 export async function getDistributionData() {
   const khoVp = await prisma.unit.findFirst({
     where: { OR: [{ code: 'KHO-VP' }, { type: 'Kho/Xưởng' }, { sortOrder: 0 }] },
@@ -122,6 +130,9 @@ export async function dispatchMultipleMetersToUnit(data: {
 
   await prisma.$transaction(async (tx) => {
     // A. Create Export Voucher Header
+    const destUnit = await tx.unit.findUnique({ where: { id: data.destinationUnitId } });
+    const defaultDeliverer = destUnit?.name || 'Đại diện đơn vị';
+
     const voucher = await tx.exportVoucher.create({
       data: {
         code,
@@ -129,8 +140,8 @@ export async function dispatchMultipleMetersToUnit(data: {
         exportReason: 'unit_distribution',
         unitId: khoVp.id,
         destinationUnitId: data.destinationUnitId,
-        delivererName: data.delivererName || 'Nguyễn Văn Tiến',
-        receiverName: data.receiverName || 'Đại diện đơn vị',
+        delivererName: data.delivererName || defaultDeliverer,
+        receiverName: data.receiverName || 'Nguyễn Văn Tiến',
         createdBy: khoUser?.id || 1,
         status: 'completed',
         totalAmount: 0, // will update
@@ -393,11 +404,23 @@ export async function updateExportVoucher(
     });
   });
 
-  revalidatePath('/distribution');
-  revalidatePath('/reports');
-  revalidatePath('/unit-reports');
-  revalidatePath('/');
-  return { success: true };
+  const updatedVoucher = await prisma.exportVoucher.findUnique({
+    where: { id },
+    include: {
+      destinationUnit: true,
+      details: {
+        include: {
+          meter: true,
+        },
+      },
+    },
+  });
+
+  safeRevalidatePath('/distribution');
+  safeRevalidatePath('/reports');
+  safeRevalidatePath('/unit-reports');
+  safeRevalidatePath('/');
+  return { success: true, voucher: updatedVoucher };
 }
 
 export async function updateExportVoucherNotes(id: number, notes: string) {
@@ -406,6 +429,6 @@ export async function updateExportVoucherNotes(id: number, notes: string) {
     where: { id },
     data: { notes },
   });
-  revalidatePath('/distribution');
+  safeRevalidatePath('/distribution');
   return { success: true, voucher };
 }

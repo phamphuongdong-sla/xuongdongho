@@ -175,6 +175,7 @@ export function ContractsClientView({
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
   const [printModalData, setPrintModalData] = useState<VoucherPrintData | null>(null);
 
   const selectedContract = contracts.find((c) => c.id === selectedContractId) || contracts[0];
@@ -380,6 +381,7 @@ export function ContractsClientView({
   };
 
   const handleOpenEditImport = (imp: any) => {
+    setModalError(null);
     setEditingImportVoucher(imp);
     setEditingVoucherDate(imp.voucherDate ? new Date(imp.voucherDate).toISOString().split('T')[0] : '');
     setImportNotes(imp.notes || '');
@@ -405,12 +407,14 @@ export function ContractsClientView({
   const handleImportGoods = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setModalError(null);
     try {
       if (editingImportVoucher) {
-        await updateImportVoucher(editingImportVoucher.id, {
+        const updateRes = await updateImportVoucher(editingImportVoucher.id, {
           voucherDate: editingVoucherDate || undefined,
           notes: importNotes,
           customerDeptName,
+          delivererName: customerDeptName,
           creatorName,
           workshopManagerName,
           items: importRows.filter(r => r.quantity > 0).map(r => ({
@@ -419,6 +423,27 @@ export function ContractsClientView({
             quantity: r.quantity,
           })),
         });
+
+        if (updateRes && (updateRes as any).voucher) {
+          const uv = (updateRes as any).voucher;
+          setImportList(prev => prev.map(v => v.id === uv.id ? uv : v));
+        } else {
+          setImportList(prev => prev.map(v => {
+            if (v.id === editingImportVoucher.id) {
+              return {
+                ...v,
+                voucherDate: editingVoucherDate ? new Date(editingVoucherDate) : v.voucherDate,
+                notes: importNotes,
+                delivererName: customerDeptName,
+                customerDeptName: customerDeptName,
+                receiverName: creatorName,
+                technicianName: workshopManagerName,
+              };
+            }
+            return v;
+          }));
+        }
+
         setMessage({
           type: 'success',
           text: `Đã cập nhật thành công phiếu nhập ${editingImportVoucher.code} và đồng bộ tồn kho!`,
@@ -428,6 +453,7 @@ export function ContractsClientView({
         router.refresh();
       } else {
         if (!importBatchId) {
+          setModalError('Vui lòng chọn đợt nhập theo hợp đồng!');
           setMessage({ type: 'error', text: 'Vui lòng chọn đợt nhập theo hợp đồng!' });
           setLoading(false);
           return;
@@ -449,7 +475,8 @@ export function ContractsClientView({
         router.refresh();
       }
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
+      setModalError(err.message || 'Lỗi khi lưu phiếu nhập');
+      setMessage({ type: 'error', text: err.message || 'Lỗi khi lưu phiếu nhập' });
     } finally {
       setLoading(false);
     }
@@ -1116,6 +1143,13 @@ export function ContractsClientView({
             </div>
 
             <form onSubmit={handleImportGoods} className="space-y-4 text-xs">
+              {modalError && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                  <span>{modalError}</span>
+                </div>
+              )}
+
               {/* Linked Contract & Batch Selectors (or Info when editing) */}
               {editingImportVoucher ? (
                 <div className="bg-brand-50/70 p-3.5 rounded-xl border border-brand-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
