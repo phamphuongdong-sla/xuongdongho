@@ -717,7 +717,7 @@ export function DistributionClientView({
                             warehouseName: 'Xưởng đồng hồ',
                             delivererName: v.delivererName || delivererName || 'Đại diện đơn vị',
                             receiverName: v.receiverName || creatorName || 'Nguyễn Văn Tiến',
-                            creatorName: creatorName || 'Nguyễn Văn Tiến',
+                            creatorName: v.receiverName || creatorName || 'Nguyễn Văn Tiến',
                             technicianName: technicianName || 'Bùi Đức Duy',
                             reason: v.notes || 'Xuất cấp đồng hồ phục vụ mạng lưới cấp nước',
                             items: (v.details || []).map((d: any, idx: number) => ({

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Printer, X, Download, FileText, CheckCircle2, FileSpreadsheet, Edit3 } from 'lucide-react';
+import { Printer, X, Download, FileText, CheckCircle2, FileSpreadsheet } from 'lucide-react';
 import { numberToVietnameseWords } from '@/lib/numberToWords';
 import ExcelJS from 'exceljs';
 
@@ -54,23 +54,12 @@ export function PrintVoucherModal({
   const isRepairMaterialExport = data.voucherCategory === 'repair_material_export';
   const isUnitDistributionExport = data.voucherCategory === 'unit_distribution_export';
 
-  // Editable signers state
-  const [delivererName, setDelivererName] = useState(
-    data.delivererName || (isUnitDistributionExport ? data.destinationOrSupplier : (data.customerDeptName || 'Đại diện bên giao hàng'))
-  );
-  const [creatorName, setCreatorName] = useState(
-    data.creatorName || 'Phạm Phương Đông'
-  );
-  const [receiverName, setReceiverName] = useState(
-    data.receiverName || (isRepairMaterialExport ? 'Nguyễn Văn Tiến' : 'Đại diện đơn vị')
-  );
-  const [workshopManagerName, setWorkshopManagerName] = useState(
-    data.workshopManagerName || data.technicianName || 'Bùi Đức Duy'
-  );
-  const [technicianName, setTechnicianName] = useState(
-    data.technicianName || 'Bùi Đức Duy'
-  );
-  const [isEditingSigners, setIsEditingSigners] = useState(false);
+  // Signer names from voucher data
+  const delivererName = data.delivererName || (isUnitDistributionExport ? data.destinationOrSupplier : (data.customerDeptName || 'Đại diện bên giao hàng'));
+  const creatorName = data.creatorName || (isRepairMaterialExport ? 'Lương Phương Thảo' : 'Nguyễn Văn Tiến');
+  const receiverName = data.receiverName || (isRepairMaterialExport ? 'Nguyễn Văn Tiến' : (isExport ? (data.destinationOrSupplier || 'Đại diện đơn vị') : 'Nguyễn Văn Tiến'));
+  const workshopManagerName = data.workshopManagerName || data.technicianName || 'Bùi Đức Duy';
+  const technicianName = data.technicianName || 'Bùi Đức Duy';
 
   const voucherTitle = data.customTitle || (isUnitDistributionExport ? 'PHIẾU XIN LĨNH' : isRepairMaterialExport ? 'PHIẾU XIN LĨNH VẬT TƯ' : (isExport ? 'PHIẾU XUẤT KHO' : 'PHIẾU NHẬP KHO'));
 
@@ -456,19 +445,6 @@ export function PrintVoucherModal({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setIsEditingSigners(!isEditingSigners)}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs shadow-sm transition-all cursor-pointer border ${
-                isEditingSigners 
-                  ? 'bg-amber-100 text-amber-900 border-amber-300' 
-                  : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-300'
-              }`}
-              title="Đổi tên người giao hàng và người ký phiếu trực tiếp"
-            >
-              <Edit3 className="w-4 h-4 text-brand-600" />
-              {isEditingSigners ? 'Xong sửa người ký' : 'Sửa người ký / giao'}
-            </button>
-            <button
-              type="button"
               onClick={handlePrint}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold text-xs shadow-sm transition-all cursor-pointer"
             >
@@ -538,19 +514,9 @@ export function PrintVoucherModal({
                 <span className="min-w-[175px] font-medium text-slate-700">
                   {isUnitDistributionExport ? '- Họ và tên người giao hàng:' : isExport ? '- Họ và tên người nhận hàng:' : '- Họ và tên người giao hàng:'}
                 </span>
-                {isEditingSigners ? (
-                  <input
-                    type="text"
-                    value={delivererName}
-                    onChange={(e) => setDelivererName(e.target.value)}
-                    className="font-bold text-slate-900 border-b-2 border-brand-500 bg-amber-50/50 px-2 py-0.5 flex-1 text-[13px] rounded focus:outline-none"
-                    placeholder="Nhập tên người giao hàng..."
-                  />
-                ) : (
-                  <span className="font-bold text-slate-900 border-b border-dotted border-slate-400 flex-1 pl-1">
-                    {isUnitDistributionExport ? (delivererName || data.destinationOrSupplier) : isExport ? (data.receiverName || data.destinationOrSupplier) : (delivererName || data.destinationOrSupplier)}
-                  </span>
-                )}
+                <span className="font-bold text-slate-900 border-b border-dotted border-slate-400 flex-1 pl-1">
+                  {isUnitDistributionExport ? (delivererName || data.destinationOrSupplier) : isExport ? (receiverName || data.destinationOrSupplier) : (delivererName || data.destinationOrSupplier)}
+                </span>
               </div>
 
               {!isExport && (
@@ -558,19 +524,9 @@ export function PrintVoucherModal({
                   <span className="min-w-[175px] font-medium text-slate-700">
                     - Họ và tên người nhận hàng:
                   </span>
-                  {isEditingSigners ? (
-                    <input
-                      type="text"
-                      value={creatorName}
-                      onChange={(e) => setCreatorName(e.target.value)}
-                      className="font-bold text-slate-900 border-b-2 border-brand-500 bg-amber-50/50 px-2 py-0.5 flex-1 text-[13px] rounded focus:outline-none"
-                      placeholder="Nhập tên người nhận hàng..."
-                    />
-                  ) : (
-                    <span className="font-bold text-slate-900 border-b border-dotted border-slate-400 flex-1 pl-1">
-                      {creatorName || data.receiverName || 'Nguyễn Văn Tiến'}
-                    </span>
-                  )}
+                  <span className="font-bold text-slate-900 border-b border-dotted border-slate-400 flex-1 pl-1">
+                    {creatorName || receiverName || 'Nguyễn Văn Tiến'}
+                  </span>
                 </div>
               )}
 
@@ -702,19 +658,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Người lập phiếu</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={creatorName}
-                          onChange={(e) => setCreatorName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Người lập..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {creatorName || 'Nguyễn Văn Tiến'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {creatorName || 'Nguyễn Văn Tiến'}
+                      </span>
                     </div>
                   </div>
 
@@ -723,19 +669,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Đại diện người giao hàng</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={delivererName}
-                          onChange={(e) => setDelivererName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Người giao..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {delivererName || 'Đại diện bên giao hàng'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {delivererName || 'Đại diện bên giao hàng'}
+                      </span>
                     </div>
                   </div>
 
@@ -744,19 +680,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Xưởng đồng hồ</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={workshopManagerName}
-                          onChange={(e) => setWorkshopManagerName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Đại diện xưởng..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {workshopManagerName || 'Bùi Đức Duy'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {workshopManagerName || 'Bùi Đức Duy'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -804,19 +730,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Người lập phiếu</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={creatorName}
-                          onChange={(e) => setCreatorName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Người lập..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {creatorName || data.creatorName || 'Lương Phương Thảo'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {creatorName || data.creatorName || 'Lương Phương Thảo'}
+                      </span>
                     </div>
                   </div>
 
@@ -825,19 +741,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Người nhận hàng</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={receiverName}
-                          onChange={(e) => setReceiverName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Người nhận..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {receiverName || data.receiverName || 'Nguyễn Văn Tiến'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {receiverName || data.receiverName || 'Nguyễn Văn Tiến'}
+                      </span>
                     </div>
                   </div>
 
@@ -846,19 +752,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Xưởng đồng hồ</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={workshopManagerName}
-                          onChange={(e) => setWorkshopManagerName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Đại diện xưởng..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {workshopManagerName || data.workshopManagerName || 'Bùi Đức Duy'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {workshopManagerName || data.workshopManagerName || 'Bùi Đức Duy'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -870,19 +766,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Người lập phiếu</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={creatorName}
-                          onChange={(e) => setCreatorName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Người lập..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {creatorName || data.creatorName || 'Nguyễn Văn Tiến'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {creatorName || data.creatorName || 'Nguyễn Văn Tiến'}
+                      </span>
                     </div>
                   </div>
 
@@ -891,19 +777,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Người giao (Đơn vị)</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={delivererName}
-                          onChange={(e) => setDelivererName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Người giao / Tên đơn vị..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {delivererName || data.delivererName || data.destinationOrSupplier || 'Đại diện đơn vị'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {delivererName || data.delivererName || data.destinationOrSupplier || 'Đại diện đơn vị'}
+                      </span>
                     </div>
                   </div>
 
@@ -912,19 +788,9 @@ export function PrintVoucherModal({
                     <p className="font-bold text-slate-900">Phụ trách kỹ thuật</p>
                     <p className="italic text-[10px] text-slate-500">(Ký, họ tên)</p>
                     <div className="h-16 flex items-end justify-center">
-                      {isEditingSigners ? (
-                        <input
-                          type="text"
-                          value={technicianName}
-                          onChange={(e) => setTechnicianName(e.target.value)}
-                          className="font-semibold text-slate-800 text-[11px] text-center border-b border-brand-500 bg-amber-50 px-1 py-0.5 rounded w-full"
-                          placeholder="Phụ trách KT..."
-                        />
-                      ) : (
-                        <span className="font-semibold text-slate-800 text-[11px]">
-                          {technicianName || data.technicianName || 'Bùi Đức Duy'}
-                        </span>
-                      )}
+                      <span className="font-semibold text-slate-800 text-[11px]">
+                        {technicianName || data.technicianName || 'Bùi Đức Duy'}
+                      </span>
                     </div>
                   </div>
                 </div>
