@@ -44,6 +44,7 @@ export interface MeterExportRecord {
 export interface MeterBalanceItem {
   code: string;
   name: string;
+  category?: string;
   unit: string;
   opening: number;
   import: number;
@@ -74,6 +75,7 @@ export interface PartUsedRecord {
 export interface PartBalanceItem {
   stt: number;
   name: string;
+  category?: string;
   price: number;
   unit: string;
   opening: number;
@@ -265,14 +267,17 @@ export function buildMultiYearReportsData({
   }
 
   const dbPartsMap = new Map<string, any>();
+  const dbPartsByCodeMap = new Map<string, any>();
   for (const p of (allSpareParts || [])) {
     if (p.isActive !== false) {
       dbPartsMap.set(p.name, p);
+      dbPartsMap.set(p.name.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim(), p);
+      if (p.code) dbPartsByCodeMap.set(p.code, p);
     }
   }
 
   // Standard meter catalogue: synchronized from base products and live DB meters
-  const standardMetersList: Array<{ code: string; name: string; unit: string }> = [];
+  const standardMetersList: Array<{ code: string; name: string; category: string; unit: string }> = [];
   const processedCodes = new Set<string>();
 
   if (base2026Monthly.products && base2026Monthly.products.length > 0) {
@@ -282,6 +287,7 @@ export function buildMultiYearReportsData({
       standardMetersList.push({
         code: p.code,
         name: dbMeter?.name || p.name,
+        category: dbMeter?.category || (p.code.includes('SC') ? 'Sửa chữa' : 'Tiêu chuẩn'),
         unit: dbMeter?.unit || p.unit,
       });
       processedCodes.add(p.code);
@@ -293,6 +299,7 @@ export function buildMultiYearReportsData({
       standardMetersList.push({
         code: m.code,
         name: m.name,
+        category: m.category || 'Tiêu chuẩn',
         unit: m.unit || 'Cái',
       });
       processedCodes.add(m.code);
@@ -301,19 +308,23 @@ export function buildMultiYearReportsData({
   const standardMeters = standardMetersList;
 
   // Standard spare parts catalogue: synchronized from oracle and live DB spare parts
-  const standardPartsList: Array<{ stt: number; name: string; price: number; unit: string }> = [];
+  const standardPartsList: Array<{ stt: number; name: string; category: string; price: number; unit: string }> = [];
   const processedParts = new Set<string>();
 
   if (baseOracleParts && baseOracleParts.length > 0) {
     for (const p of baseOracleParts) {
       if (allSpareParts && allSpareParts.some(x => x.name === p.name && x.isActive === false)) continue;
-      const dbPart = dbPartsMap.get(p.name);
+      const cleanPName = p.name.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+      const expectedCode = p.stt <= 13 ? `VP-D15-${String(p.stt).padStart(3, '0')}` : `VP-${String(p.stt).padStart(3, '0')}`;
+      const dbPart = dbPartsMap.get(p.name) || dbPartsMap.get(cleanPName) || dbPartsByCodeMap.get(expectedCode);
       standardPartsList.push({
         stt: p.stt,
-        name: p.name,
+        name: dbPart?.name || p.name,
+        category: dbPart?.category || 'Linh kiện',
         price: dbPart?.unitPrice !== undefined ? dbPart.unitPrice : (p.price || 0),
         unit: dbPart?.unit || p.unit || 'Cái',
       });
+      if (dbPart) processedParts.add(dbPart.name);
       processedParts.add(p.name);
     }
   }
@@ -324,6 +335,7 @@ export function buildMultiYearReportsData({
       standardPartsList.push({
         stt: nextPartStt++,
         name: p.name,
+        category: p.category || 'Linh kiện',
         price: p.unitPrice || 0,
         unit: p.unit || 'Cái',
       });
@@ -473,7 +485,15 @@ export function buildMultiYearReportsData({
           }
 
           if (det.meter?.code) {
-            const mCode = det.meter.code;
+            // Skip old meters returned from units (they are broken meters sent for inspection/repair)
+            if (v.importReason === 'old_meters_return' || det.status === 'sent_for_repair') {
+              continue;
+            }
+            const rawCode = det.meter.code;
+            const isRepaired = det.status === 'circulating' || det.meter.category === 'Sửa chữa';
+            const mCode = isRepaired && standardMeters.some(m => m.code === `${rawCode}(SC)`)
+              ? `${rawCode}(SC)`
+              : rawCode;
             const qty = det.quantity || 0;
             yr2026NewMetersImportTotals[mCode] = (yr2026NewMetersImportTotals[mCode] || 0) + qty;
             if (!yr2026NewMetersImportRecords[mCode]) {
@@ -505,10 +525,13 @@ export function buildMultiYearReportsData({
         const unitKey = mapUnitToStandardKey(v.destinationUnit?.code, v.destinationUnit?.name);
 
         for (const det of (v.details || [])) {
-          const mCode = det.meter?.code;
-          if (mCode) {
+          const rawCode = det.meter?.code;
+          if (rawCode) {
             const qty = det.quantity || 0;
             const isNew = det.status === 'new';
+            const mCode = (!isNew && standardMeters.some(m => m.code === `${rawCode}(SC)`))
+              ? `${rawCode}(SC)`
+              : rawCode;
             yr2026NewMetersExportTotals[mCode] = (yr2026NewMetersExportTotals[mCode] || 0) + qty;
             if (!yr2026MeterExportRecords[mCode]) yr2026MeterExportRecords[mCode] = [];
             yr2026MeterExportRecords[mCode].push({
@@ -528,11 +551,16 @@ export function buildMultiYearReportsData({
       const yr2026SupplementExports: Record<string, number> = {};
       for (const r of yr2026Repairs) {
         if (r.status === 'completed' && r.meter?.code) {
-          const mCode = r.meter.code;
+          const rawCode = r.meter.code;
           const qty = r.completedQuantity || r.inputQuantity || 0;
           const rDateStr = (r.repairDate || r.createdAt) ? new Date(r.repairDate || r.createdAt).toLocaleDateString('vi-VN') : '';
           const isSupplement = r.notes?.includes('bổ sung') || r.code?.includes('BS');
           const cleanNote = r.notes?.replace(/\[Nguồn:[^\]]+\]\s*/, '') || 'Xuất bổ sung ĐH mới sang ĐH sửa chữa do thay đổi kế hoạch';
+
+          // Repaired meters enter the repaired meter row (SC)
+          const mCode = standardMeters.some(m => m.code === `${rawCode}(SC)`)
+            ? `${rawCode}(SC)`
+            : rawCode;
 
           yr2026NewMetersImportTotals[mCode] = (yr2026NewMetersImportTotals[mCode] || 0) + qty;
           if (!yr2026NewMetersImportRecords[mCode]) {
@@ -598,14 +626,15 @@ export function buildMultiYearReportsData({
         oracleMeterMap.set(om.code, om);
       }
 
+      const hasMeterVouchers = Object.keys(yr2026NewMetersImportTotals).length > 0 || Object.keys(yr2026NewMetersExportTotals).length > 0;
       const metersBal: MeterBalanceItem[] = standardMeters.map(sm => {
         const om = oracleMeterMap.get(sm.code);
-        const baseImport = om?.import || 0;
+        const baseImport = hasMeterVouchers ? 0 : (om?.import || 0);
         const newImport = yr2026NewMetersImportTotals[sm.code] || 0;
         const totalImport = baseImport + newImport;
         const rawOpening = yr2026MeterOverrides[sm.code] !== undefined ? yr2026MeterOverrides[sm.code] : (om?.opening || 0);
         const opening = rawOpening;
-        const baseExp = om?.export || 0;
+        const baseExp = hasMeterVouchers ? 0 : (om?.export || 0);
         const newExp = yr2026NewMetersExportTotals[sm.code] || 0;
         const suppExp = yr2026SupplementExports[sm.code] || 0;
         const exp = baseExp + newExp + suppExp;
@@ -616,6 +645,7 @@ export function buildMultiYearReportsData({
         return {
           code: sm.code,
           name: sm.name,
+          category: sm.category,
           unit: sm.unit,
           opening,
           import: totalImport,
@@ -634,9 +664,10 @@ export function buildMultiYearReportsData({
         oraclePartMap.set(op.name, op);
       }
 
+      const hasPartVouchers = Object.keys(yr2026NewPartsImportTotals).length > 0;
       const partsBal: PartBalanceItem[] = standardParts.map(sp => {
         const op = oraclePartMap.get(sp.name);
-        const baseImport = op?.total_import || 0;
+        const baseImport = hasPartVouchers ? 0 : (op?.total_import || 0);
         const newImport = yr2026NewPartsImportTotals[sp.name] || 0;
         const totalImport = baseImport + newImport;
 
@@ -653,6 +684,7 @@ export function buildMultiYearReportsData({
         return {
           stt: sp.stt,
           name: sp.name,
+          category: sp.category,
           price: sp.price,
           unit: sp.unit,
           opening,
@@ -813,9 +845,12 @@ export function buildMultiYearReportsData({
         const targetUnit = unitsMap[unitKey] || unitsMap[mapUnitToStandardKey(v.destinationUnit?.code, v.destinationUnit?.name)];
         if (targetUnit) {
           for (const det of (v.details || [])) {
-            const mCode = det.meter?.code;
-            if (!mCode) continue;
+            const rawCode = det.meter?.code;
+            if (!rawCode) continue;
             const isRepaired = isRepairedMeter(det.meter, det.status);
+            const mCode = (isRepaired && standardMeters.some(m => m.code === `${rawCode}(SC)`))
+              ? `${rawCode}(SC)`
+              : rawCode;
             const qty = det.quantity || 0;
 
             meterExportTotals[mCode] = (meterExportTotals[mCode] || 0) + qty;
@@ -881,7 +916,15 @@ export function buildMultiYearReportsData({
 
         for (const det of (v.details || [])) {
           if (det.meter?.code) {
-            const mCode = det.meter.code;
+            // Skip old meters returned from units (they are broken meters sent for inspection/repair)
+            if (v.importReason === 'old_meters_return' || det.status === 'sent_for_repair') {
+              continue;
+            }
+            const rawCode = det.meter.code;
+            const isRepaired = det.status === 'circulating' || det.meter.category === 'Sửa chữa';
+            const mCode = isRepaired && standardMeters.some(m => m.code === `${rawCode}(SC)`)
+              ? `${rawCode}(SC)`
+              : rawCode;
             const qty = det.quantity || 0;
             meterImportTotals[mCode] = (meterImportTotals[mCode] || 0) + qty;
             if (!meterImportRecords[mCode]) {
@@ -903,11 +946,15 @@ export function buildMultiYearReportsData({
       // Add repaired meters entering circulating stock
       for (const r of yrRepairs) {
         if (r.status === 'completed' && r.meter?.code) {
-          const mCode = r.meter.code;
+          const rawCode = r.meter.code;
           const qty = r.completedQuantity || r.inputQuantity || 0;
           const rDateStr = (r.repairDate || r.createdAt) ? new Date(r.repairDate || r.createdAt).toLocaleDateString('vi-VN') : '';
           const isSupplement = r.notes?.includes('bổ sung') || r.code?.includes('BS');
           const cleanNote = r.notes?.replace(/\[Nguồn:[^\]]+\]\s*/, '') || 'Xuất bổ sung ĐH mới sang ĐH sửa chữa do thay đổi kế hoạch';
+
+          const mCode = standardMeters.some(m => m.code === `${rawCode}(SC)`)
+            ? `${rawCode}(SC)`
+            : rawCode;
 
           meterImportTotals[mCode] = (meterImportTotals[mCode] || 0) + qty;
           if (!meterImportRecords[mCode]) {
@@ -1009,6 +1056,7 @@ export function buildMultiYearReportsData({
         return {
           code: m.code,
           name: m.name,
+          category: m.category,
           unit: m.unit,
           opening,
           import: imp,
@@ -1033,6 +1081,7 @@ export function buildMultiYearReportsData({
         return {
           stt: p.stt,
           name: p.name,
+          category: p.category,
           price: p.price || 0,
           unit: p.unit || 'Cái',
           opening,

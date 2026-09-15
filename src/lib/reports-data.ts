@@ -16,7 +16,7 @@ export async function getAggregatedReportsData() {
   const unitMonthlyReturns = unitMonthlyReturnsData as any;
   const unitYearlyPlans = (unitYearlyPlansData || {}) as Record<string, number>;
   const unitUsedYearlyPlans = (unitUsedYearlyPlansData || {}) as Record<string, number>;
-  const openingOverrides = { meters: {}, parts: {} };
+  const openingOverrides = { meters: { '2026': { 'ĐH015(SC)': 13 } }, parts: {} };
 
   // Fetch live meters, spare parts, units, vouchers from DB & current user session
   // Note: optimize queries by omitting unused deep nested relations on Cloudflare Workers

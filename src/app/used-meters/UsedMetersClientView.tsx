@@ -529,10 +529,14 @@ export function UsedMetersClientView({
                           onChange={(e) => handleItemChange(idx, 'meterId', Number(e.target.value))}
                           className="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                         >
-                          {availableMeters.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.name}
-                            </option>
+                          {Array.from(new Set(availableMeters.map(m => m.category || 'Tiêu chuẩn'))).map(cat => (
+                            <optgroup key={cat} label={`── ${cat} ──`}>
+                              {availableMeters.filter(m => (m.category || 'Tiêu chuẩn') === cat).map((m) => (
+                                <option key={m.id} value={m.id}>
+                                  {m.name}
+                                </option>
+                              ))}
+                            </optgroup>
                           ))}
                         </select>
                       </div>

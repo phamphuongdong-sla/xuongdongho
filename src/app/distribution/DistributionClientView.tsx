@@ -423,10 +423,14 @@ export function DistributionClientView({
                           onChange={(e) => handleItemChange(idx, 'meterId', Number(e.target.value))}
                           className="w-full text-xs border rounded-lg p-2 bg-white font-medium focus:outline-none"
                         >
-                          {meters.map((meter) => (
-                            <option key={meter.id} value={meter.id}>
-                              {meter.name}
-                            </option>
+                          {Array.from(new Set(meters.map(m => m.category || 'Tiêu chuẩn'))).map(cat => (
+                            <optgroup key={cat} label={`── ${cat} ──`}>
+                              {meters.filter(m => (m.category || 'Tiêu chuẩn') === cat).map((meter) => (
+                                <option key={meter.id} value={meter.id}>
+                                  {meter.name}
+                                </option>
+                              ))}
+                            </optgroup>
                           ))}
                         </select>
                       </div>
@@ -810,10 +814,14 @@ export function DistributionClientView({
                             }}
                             className="w-full text-xs border rounded p-1.5 bg-white font-medium"
                           >
-                            {meters.map((m) => (
-                              <option key={m.id} value={m.id}>
-                                {m.name}
-                              </option>
+                            {Array.from(new Set(meters.map(m => m.category || 'Tiêu chuẩn'))).map(cat => (
+                              <optgroup key={cat} label={`── ${cat} ──`}>
+                                {meters.filter(m => (m.category || 'Tiêu chuẩn') === cat).map((m) => (
+                                  <option key={m.id} value={m.id}>
+                                    {m.name}
+                                  </option>
+                                ))}
+                              </optgroup>
                             ))}
                           </select>
                         </div>

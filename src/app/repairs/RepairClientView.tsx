@@ -512,10 +512,14 @@ export function RepairClientView({
                 }}
                 className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 bg-white font-semibold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
               >
-                {availableRepairMeters.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} {((m as any).waitingRepairStock ?? 0) > 0 ? `(Chờ sửa: ${(m as any).waitingRepairStock} cái)` : ''}
-                  </option>
+                {Array.from(new Set(availableRepairMeters.map(m => m.category || 'Sửa chữa'))).map(cat => (
+                  <optgroup key={cat} label={`── ${cat} ──`}>
+                    {availableRepairMeters.filter(m => (m.category || 'Sửa chữa') === cat).map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} {((m as any).waitingRepairStock ?? 0) > 0 ? `(Chờ sửa: ${(m as any).waitingRepairStock} cái)` : ''}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
@@ -626,10 +630,14 @@ export function RepairClientView({
                         onChange={(e) => handlePartChange(idx, Number(e.target.value))}
                         className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 bg-white focus:outline-none"
                       >
-                        {spareParts.map((sp) => (
-                          <option key={sp.id} value={sp.id}>
-                            {sp.name} — Tồn kho: {sp.availableStock} {sp.unit}
-                          </option>
+                        {Array.from(new Set(spareParts.map(sp => sp.category || 'Linh kiện'))).map(cat => (
+                          <optgroup key={cat} label={`── ${cat} ──`}>
+                            {spareParts.filter(sp => (sp.category || 'Linh kiện') === cat).map((sp) => (
+                              <option key={sp.id} value={sp.id}>
+                                {sp.name} — Tồn: {sp.availableStock} {sp.unit}
+                              </option>
+                            ))}
+                          </optgroup>
                         ))}
                       </select>
                     </div>
@@ -797,10 +805,14 @@ export function RepairClientView({
                 onChange={(e) => handleSourceMeterChange(Number(e.target.value))}
                 className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 bg-white font-medium text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-none"
               >
-                {allMeters.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} — Tồn Mới khả dụng: {m.newStock} cái
-                  </option>
+                {Array.from(new Set(allMeters.map(m => m.category || 'Tiêu chuẩn'))).map(cat => (
+                  <optgroup key={cat} label={`── ${cat} ──`}>
+                    {allMeters.filter(m => (m.category || 'Tiêu chuẩn') === cat).map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} — Tồn Mới: {m.newStock} cái
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               <div className="mt-1 flex justify-between text-[11px]">
@@ -826,10 +838,14 @@ export function RepairClientView({
                 onChange={(e) => setSuppTargetMeterId(Number(e.target.value))}
                 className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 bg-white font-medium text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-none"
               >
-                {availableRepairMeters.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
+                {Array.from(new Set(availableRepairMeters.map(m => m.category || 'Sửa chữa'))).map(cat => (
+                  <optgroup key={cat} label={`── ${cat} ──`}>
+                    {availableRepairMeters.filter(m => (m.category || 'Sửa chữa') === cat).map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

@@ -435,32 +435,40 @@ export async function updateImportVoucher(
           const inv = await tx.inventory.findFirst({
             where: { unitId: existing.unitId, sparePartId: d.sparePartId, status: 'new' },
           });
-          const currentStock = inv?.quantity || 0;
-          if (currentStock < d.quantity) {
-            const part = await tx.sparePart.findUnique({ where: { id: d.sparePartId } });
-            throw new Error(
-              `Không thể sửa đổi phiếu nhập: Linh kiện "${part?.name || d.sparePartId}" đã được xuất dùng (Tồn hiện tại: ${currentStock}, số lượng hoàn trả: ${d.quantity}).`
-            );
+          // Only block if inventory record exists AND stock is less than the amount to revert.
+          // If no inventory record exists (data inconsistency), skip gracefully.
+          if (inv) {
+            const currentStock = inv.quantity || 0;
+            if (currentStock < d.quantity) {
+              const part = await tx.sparePart.findUnique({ where: { id: d.sparePartId } });
+              throw new Error(
+                `Không thể sửa đổi phiếu nhập: Linh kiện "${part?.name || d.sparePartId}" đã được xuất dùng (Tồn hiện tại: ${currentStock}, số lượng hoàn trả: ${d.quantity}).`
+              );
+            }
+            await tx.inventory.updateMany({
+              where: { unitId: existing.unitId, sparePartId: d.sparePartId, status: 'new' },
+              data: { quantity: { decrement: d.quantity } },
+            });
           }
-          await tx.inventory.updateMany({
-            where: { unitId: existing.unitId, sparePartId: d.sparePartId, status: 'new' },
-            data: { quantity: { decrement: d.quantity } },
-          });
+          // else: no inventory record = nothing to revert, skip
         } else if (d.meterId) {
           const inv = await tx.inventory.findFirst({
             where: { unitId: existing.unitId, meterId: d.meterId, status: 'new' },
           });
-          const currentStock = inv?.quantity || 0;
-          if (currentStock < d.quantity) {
-            const meter = await tx.meter.findUnique({ where: { id: d.meterId } });
-            throw new Error(
-              `Không thể sửa đổi phiếu nhập: Đồng hồ "${meter?.name || d.meterId}" đã được xuất cấp (Tồn hiện tại: ${currentStock}, số lượng hoàn trả: ${d.quantity}).`
-            );
+          if (inv) {
+            const currentStock = inv.quantity || 0;
+            if (currentStock < d.quantity) {
+              const meter = await tx.meter.findUnique({ where: { id: d.meterId } });
+              throw new Error(
+                `Không thể sửa đổi phiếu nhập: Đồng hồ "${meter?.name || d.meterId}" đã được xuất cấp (Tồn hiện tại: ${currentStock}, số lượng hoàn trả: ${d.quantity}).`
+              );
+            }
+            await tx.inventory.updateMany({
+              where: { unitId: existing.unitId, meterId: d.meterId, status: 'new' },
+              data: { quantity: { decrement: d.quantity } },
+            });
           }
-          await tx.inventory.updateMany({
-            where: { unitId: existing.unitId, meterId: d.meterId, status: 'new' },
-            data: { quantity: { decrement: d.quantity } },
-          });
+          // else: no inventory record = nothing to revert, skip
         }
       }
 

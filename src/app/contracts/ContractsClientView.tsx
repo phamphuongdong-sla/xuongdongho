@@ -1145,10 +1145,14 @@ export function ContractsClientView({
                             }}
                             className="w-full text-xs border rounded p-1.5 bg-white font-medium"
                           >
-                            {meters.map((m) => (
-                              <option key={m.id} value={m.id}>
-                                [{m.code}] {m.name} ({m.category})
-                              </option>
+                            {Array.from(new Set(meters.map(m => m.category || 'Tiêu chuẩn'))).map(cat => (
+                              <optgroup key={cat} label={`── ${cat} ──`}>
+                                {meters.filter(m => (m.category || 'Tiêu chuẩn') === cat).map((m) => (
+                                  <option key={m.id} value={m.id}>
+                                    [{m.code}] {m.name}
+                                  </option>
+                                ))}
+                              </optgroup>
                             ))}
                           </select>
                         ) : (
@@ -1162,10 +1166,14 @@ export function ContractsClientView({
                             }}
                             className="w-full text-xs border rounded p-1.5 bg-white font-medium"
                           >
-                            {spareParts.map((sp) => (
-                              <option key={sp.id} value={sp.id}>
-                                [{sp.code}] {sp.name} (Tồn: {sp.currentStock})
-                              </option>
+                            {Array.from(new Set(spareParts.map(sp => sp.category || 'Linh kiện'))).map(cat => (
+                              <optgroup key={cat} label={`── ${cat} ──`}>
+                                {spareParts.filter(sp => (sp.category || 'Linh kiện') === cat).map((sp) => (
+                                  <option key={sp.id} value={sp.id}>
+                                    [{sp.code}] {sp.name} (Tồn: {sp.currentStock})
+                                  </option>
+                                ))}
+                              </optgroup>
                             ))}
                           </select>
                         )}

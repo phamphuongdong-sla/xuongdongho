@@ -410,11 +410,11 @@ export function ReportsClientView({
             }`}
           >
             <Table2 className={`w-4 h-4 ${activeTab === 'meters' ? 'text-blue-600' : 'text-slate-400'}`} />
-            <span>Đồng hồ các loại</span>
+            <span>Kho Đồng Hồ</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-extrabold uppercase ${
               activeTab === 'meters' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200/70 text-slate-500'
             }`}>
-              ĐH Mới & Sửa
+              Kho ĐH
             </span>
           </button>
 
@@ -427,11 +427,11 @@ export function ReportsClientView({
             }`}
           >
             <Boxes className={`w-4 h-4 ${activeTab === 'parts' ? 'text-purple-600' : 'text-slate-400'}`} />
-            <span>Linh kiện các loại</span>
+            <span>Kho Linh Kiện</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-extrabold uppercase ${
               activeTab === 'parts' ? 'bg-purple-100 text-purple-700' : 'bg-slate-200/70 text-slate-500'
             }`}>
-              BOM Linh Kiện
+              Kho LK
             </span>
           </button>
 
@@ -788,10 +788,10 @@ export function ReportsClientView({
             <div>
               <span className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <FileSpreadsheet className="w-4 h-4 text-brand-600" />
-                Báo Cáo Đối Soát Nhập - Xuất - Tồn Đồng Hồ Các Loại Năm {selectedYear}
+                Kho Đồng Hồ — Nhập / Xuất / Tồn Năm {selectedYear}
               </span>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Theo dõi đồng hồ các loại: tự động đối soát Tồn Đầu Kỳ, Nhập kho (Hợp đồng mua sắm + Xưởng sửa xong + Nhập bổ sung), Xuất kho (Cấp 12 đơn vị + Xuất bổ sung thay đổi KH) và Tồn Cuối Kỳ
+                Tổng hợp toàn bộ biến động tồn kho đồng hồ: mọi phiếu nhập kho (hợp đồng mua sắm, trả về xưởng, bổ sung), phiếu xuất cấp 12 đơn vị và xuất bổ sung đều được tính vào kho theo từng loại đồng hồ
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -860,6 +860,17 @@ export function ReportsClientView({
                         >
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span>{m.name}</span>
+                            {m.category && (
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                                m.category === 'Sửa chữa' || m.code?.includes('(SC)')
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : m.category === 'Ngoại nhập'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-slate-100 text-slate-700'
+                              }`}>
+                                {m.category}
+                              </span>
+                            )}
                             {hasRecords && (
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800">
                                 +{records.length} lần nhập
@@ -1218,10 +1229,10 @@ export function ReportsClientView({
             <div>
               <span className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <Boxes className="w-4 h-4 text-brand-600" />
-                Báo Cáo Đối Soát Nhập - Xuất Dùng - Tồn Kho Linh Kiện Các Loại Năm {selectedYear}
+                Kho Linh Kiện — Nhập / Xuất Dùng / Tồn Năm {selectedYear}
               </span>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Tự động cộng dồn các đợt nhập kho từ hợp đồng mua sắm, theo dõi xuất dùng theo phiếu sửa chữa và tính tồn kho thực tế từng loại linh kiện
+                Tổng hợp toàn bộ biến động tồn kho linh kiện: mọi phiếu nhập kho từ hợp đồng mua sắm và mọi phiếu xuất dùng từ phiếu sửa chữa đều được tính vào kho theo từng loại linh kiện
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -1312,6 +1323,11 @@ export function ReportsClientView({
                         >
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span>{(p.name || '').replace(/\n/g, ' ')}</span>
+                            {p.category && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-purple-100 text-purple-800">
+                                {p.category}
+                              </span>
+                            )}
                             {hasRecords && (
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800">
                                 +{records.length} lần nhập

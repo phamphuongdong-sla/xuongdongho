@@ -210,7 +210,11 @@ export function PrintVoucherModal({
         item.unit || 'Cái',
         docQty,
         actual,
-        item.notes || item.statusText || '',
+        item.notes
+          ? item.statusText
+            ? `${item.notes} (${item.statusText})`
+            : item.notes
+          : item.statusText || '',
       ]);
 
       dRow.font = { name: 'Times New Roman', size: 10 };
@@ -603,7 +607,11 @@ export function PrintVoucherModal({
                           {it.actualQuantity.toLocaleString()}
                         </td>
                         <td className="border border-slate-900 p-1.5 text-slate-600 text-xs">
-                          {it.notes || it.statusText || '-'}
+                          {it.notes
+                            ? it.statusText
+                              ? `${it.notes} (${it.statusText})`
+                              : it.notes
+                            : it.statusText || '-'}
                         </td>
                       </tr>
                     );
