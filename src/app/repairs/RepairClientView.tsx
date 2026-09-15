@@ -799,7 +799,7 @@ export function RepairClientView({
               >
                 {allMeters.map((m) => (
                   <option key={m.id} value={m.id}>
-                    [{m.code}] {m.name} — Tồn Mới khả dụng: {m.newStock} cái
+                    {m.name} — Tồn Mới khả dụng: {m.newStock} cái
                   </option>
                 ))}
               </select>
@@ -828,7 +828,7 @@ export function RepairClientView({
               >
                 {availableRepairMeters.map((m) => (
                   <option key={m.id} value={m.id}>
-                    [{m.code}] {m.name} (Đồng hồ sửa chữa / quay vòng)
+                    {m.name}
                   </option>
                 ))}
               </select>
