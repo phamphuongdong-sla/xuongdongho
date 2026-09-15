@@ -742,10 +742,10 @@ export function ContractsClientView({
                               code: imp.code,
                               voucherDate: imp.voucherDate,
                               destinationOrSupplier: imp.contract?.supplierName || 'Nhà cung cấp theo Hợp đồng',
-                              customerDeptName: imp.customerDeptName || imp.delivererName || 'Phạm Phương Đông',
+                              customerDeptName: imp.delivererName || imp.customerDeptName || 'Đại diện bên giao hàng',
                               creatorName: imp.receiverName || 'Nguyễn Văn Tiến',
                               workshopManagerName: imp.technicianName || 'Bùi Đức Duy',
-                              delivererName: imp.customerDeptName || imp.delivererName || 'Phạm Phương Đông',
+                              delivererName: imp.delivererName || imp.customerDeptName || 'Đại diện bên giao hàng',
                               receiverName: imp.receiverName || 'Nguyễn Văn Tiến',
                               technicianName: imp.technicianName || 'Bùi Đức Duy',
                               warehouseName: 'Xưởng đồng hồ',
@@ -1042,16 +1042,16 @@ export function ContractsClientView({
                 </div>
               </div>
 
-              {/* 3 Cán bộ ký phiếu theo quy định: Phòng QLKH (Phạm Phương Đông), Người lập phiếu (Nguyễn Văn Tiến), Xưởng đồng hồ (Bùi Đức Duy) */}
+              {/* 3 Cán bộ ký phiếu theo quy định: Đại diện người giao hàng, Người lập phiếu, Xưởng đồng hồ */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <ParticipantSelect
-                  label="Phòng Quản Lý Khách Hàng"
+                  label="Đại Diện Người Giao Hàng"
                   value={customerDeptName}
                   onChange={setCustomerDeptName}
                   options={employees}
-                  defaultKey="wm_default_contract_customer_dept"
-                  defaultFallback="Phạm Phương Đông"
-                  placeholder="Chọn cán bộ Phòng QLKH"
+                  defaultKey="wm_default_contract_deliverer"
+                  defaultFallback="Đại diện bên giao hàng"
+                  placeholder="Chọn hoặc nhập người giao hàng"
                   required
                 />
                 <ParticipantSelect
