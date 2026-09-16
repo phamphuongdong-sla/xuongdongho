@@ -408,10 +408,12 @@ export function PrintVoucherModal({
 
           #printable-voucher-sheet {
             display: block !important;
-            position: relative !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
             padding: 0 !important;
             border: none !important;
             box-shadow: none !important;
