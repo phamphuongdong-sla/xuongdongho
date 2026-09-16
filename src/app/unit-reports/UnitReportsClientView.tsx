@@ -1047,9 +1047,9 @@ export function UnitReportsClientView({
               {/* Printable Signatures Block */}
               <div className="hidden print:grid grid-cols-3 text-center text-xs text-slate-900 pt-8 pb-4 break-inside-avoid px-6 border-t border-slate-200">
                 <div>
-                  <p className="font-bold uppercase">TRƯỞNG PHÒNG</p>
+                  <p className="font-bold uppercase">NGƯỜI LẬP BIỂU</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
-                  <div className="h-16 flex items-end justify-center font-bold">Phạm Phương Đông</div>
+                  <div className="h-16 flex items-end justify-center font-bold">{currentUser?.fullName || 'Đồng Đức Anh'}</div>
                 </div>
                 <div>
                   <p className="font-bold uppercase">PHỤ TRÁCH XƯỞNG</p>
@@ -1058,9 +1058,9 @@ export function UnitReportsClientView({
                 </div>
                 <div>
                   <p className="italic text-slate-600 mb-0.5">Sơn La, ngày {new Date().getDate()} tháng {new Date().getMonth() + 1} năm {selectedYear}</p>
-                  <p className="font-bold uppercase">NGƯỜI LẬP BIỂU</p>
+                  <p className="font-bold uppercase">TRƯỞNG PHÒNG</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
-                  <div className="h-16 flex items-end justify-center font-bold">{currentUser?.fullName || 'Đồng Đức Anh'}</div>
+                  <div className="h-16 flex items-end justify-center font-bold">Phạm Phương Đông</div>
                 </div>
               </div>
             </div>
@@ -1497,9 +1497,9 @@ export function UnitReportsClientView({
               {/* Printable Signatures Block */}
               <div className="hidden print:grid grid-cols-3 text-center text-xs text-slate-900 pt-8 pb-4 break-inside-avoid px-6">
                 <div>
-                  <p className="font-bold uppercase">TRƯỞNG PHÒNG</p>
+                  <p className="font-bold uppercase">NGƯỜI LẬP BIỂU</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
-                  <div className="h-16 flex items-end justify-center font-bold">Phạm Phương Đông</div>
+                  <div className="h-16 flex items-end justify-center font-bold">{currentUser?.fullName || 'Đồng Đức Anh'}</div>
                 </div>
                 <div>
                   <p className="font-bold uppercase">PHỤ TRÁCH XƯỞNG</p>
@@ -1508,9 +1508,9 @@ export function UnitReportsClientView({
                 </div>
                 <div>
                   <p className="italic text-slate-600 mb-0.5">Sơn La, ngày {new Date().getDate()} tháng {new Date().getMonth() + 1} năm {selectedYear}</p>
-                  <p className="font-bold uppercase">NGƯỜI LẬP BIỂU</p>
+                  <p className="font-bold uppercase">TRƯỞNG PHÒNG</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
-                  <div className="h-16 flex items-end justify-center font-bold">{currentUser?.fullName || 'Đồng Đức Anh'}</div>
+                  <div className="h-16 flex items-end justify-center font-bold">Phạm Phương Đông</div>
                 </div>
               </div>
             </div>
@@ -1930,9 +1930,9 @@ export function UnitReportsClientView({
               {/* Printable Signatures Block */}
               <div className="hidden print:grid grid-cols-3 text-center text-xs text-slate-900 pt-8 pb-4 break-inside-avoid px-6 border-t border-slate-200">
                 <div>
-                  <p className="font-bold uppercase">TRƯỞNG PHÒNG</p>
+                  <p className="font-bold uppercase">NGƯỜI LẬP BIỂU</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
-                  <div className="h-16 flex items-end justify-center font-bold">Phạm Phương Đông</div>
+                  <div className="h-16 flex items-end justify-center font-bold">{currentUser?.fullName || 'Đồng Đức Anh'}</div>
                 </div>
                 <div>
                   <p className="font-bold uppercase">PHỤ TRÁCH XƯỞNG</p>
@@ -1941,9 +1941,9 @@ export function UnitReportsClientView({
                 </div>
                 <div>
                   <p className="italic text-slate-600 mb-0.5">Sơn La, ngày {new Date().getDate()} tháng {new Date().getMonth() + 1} năm {selectedYear}</p>
-                  <p className="font-bold uppercase">NGƯỜI LẬP BIỂU</p>
+                  <p className="font-bold uppercase">TRƯỞNG PHÒNG</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
-                  <div className="h-16 flex items-end justify-center font-bold">{currentUser?.fullName || 'Đồng Đức Anh'}</div>
+                  <div className="h-16 flex items-end justify-center font-bold">Phạm Phương Đông</div>
                 </div>
               </div>
             </div>
@@ -2336,9 +2336,9 @@ export function UnitReportsClientView({
               {/* Printable Signatures Block */}
               <div className="hidden print:grid grid-cols-3 text-center text-xs text-slate-900 pt-8 pb-4 break-inside-avoid px-6">
                 <div>
-                  <p className="font-bold uppercase">TRƯỞNG PHÒNG</p>
+                  <p className="font-bold uppercase">NGƯỜI LẬP BIỂU</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
-                  <div className="h-16 flex items-end justify-center font-bold">Phạm Phương Đông</div>
+                  <div className="h-16 flex items-end justify-center font-bold">{currentUser?.fullName || 'Đồng Đức Anh'}</div>
                 </div>
                 <div>
                   <p className="font-bold uppercase">PHỤ TRÁCH XƯỞNG</p>
@@ -2347,9 +2347,9 @@ export function UnitReportsClientView({
                 </div>
                 <div>
                   <p className="italic text-slate-600 mb-0.5">Sơn La, ngày {new Date().getDate()} tháng {new Date().getMonth() + 1} năm {selectedYear}</p>
-                  <p className="font-bold uppercase">NGƯỜI LẬP BIỂU</p>
+                  <p className="font-bold uppercase">TRƯỞNG PHÒNG</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
-                  <div className="h-16 flex items-end justify-center font-bold">{currentUser?.fullName || 'Đồng Đức Anh'}</div>
+                  <div className="h-16 flex items-end justify-center font-bold">Phạm Phương Đông</div>
                 </div>
               </div>
             </div>

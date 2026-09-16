@@ -755,24 +755,24 @@ export function ReportsClientView({
 
               {/* Signatures Block */}
               <div className="mt-12 grid grid-cols-2 text-center text-xs text-slate-800 break-inside-avoid">
-                {/* Left: Trưởng phòng */}
+                {/* Left: Người lập biểu */}
                 <div className="space-y-1">
-                  <p className="font-bold uppercase text-sm">Trưởng phòng</p>
+                  <p className="font-bold uppercase text-sm">Người lập biểu</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
                   <div className="h-20 flex items-end justify-center">
-                    <p className="font-bold text-sm text-slate-900">{reportDeptManager || 'Phạm Phương Đông'}</p>
+                    <p className="font-bold text-sm text-slate-900">{reportCreator || 'Đồng Đức Anh'}</p>
                   </div>
                 </div>
 
-                {/* Right: Người lập */}
+                {/* Right: Trưởng phòng / Phụ trách */}
                 <div className="space-y-1">
                   <p className="italic text-slate-600 mb-1">
                     Sơn La, {workshopMonth.toLowerCase()} năm {workshopYear}
                   </p>
-                  <p className="font-bold uppercase text-sm">Người lập</p>
+                  <p className="font-bold uppercase text-sm">Trưởng phòng</p>
                   <p className="italic text-[11px] text-slate-500">(Ký, ghi rõ họ tên)</p>
                   <div className="h-20 flex items-end justify-center">
-                    <p className="font-bold text-sm text-slate-900">{reportCreator || 'Đồng Đức Anh'}</p>
+                    <p className="font-bold text-sm text-slate-900">{reportDeptManager || 'Phạm Phương Đông'}</p>
                   </div>
                 </div>
               </div>
