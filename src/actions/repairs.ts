@@ -306,6 +306,7 @@ export async function submitRepairVoucher(data: {
  */
 export async function updateRepairVoucher(data: {
   id: number;
+  code?: string;
   meterId: number;
   inputQuantity: number;
   completedQuantity: number;
@@ -344,6 +345,16 @@ export async function updateRepairVoucher(data: {
       include: { sparePartUsages: true },
     });
     if (!voucher) return { success: false, error: 'Phiếu sửa chữa không tồn tại.' };
+
+    if (data.code && data.code.trim() !== voucher.code) {
+      const duplicate = await prisma.repairVoucher.findUnique({
+        where: { code: data.code.trim() },
+      });
+      if (duplicate) {
+        return { success: false, error: `Số phiếu "${data.code.trim()}" đã được sử dụng.` };
+      }
+    }
+
     if (voucher.code.includes('BS') || voucher.notes?.includes('[Nguồn:')) {
       return {
         success: false,
@@ -405,6 +416,7 @@ export async function updateRepairVoucher(data: {
       await tx.repairVoucher.update({
         where: { id: voucher.id },
         data: {
+          code: data.code?.trim() || voucher.code,
           meterId: data.meterId,
           inputQuantity: data.inputQuantity,
           completedQuantity: data.completedQuantity,

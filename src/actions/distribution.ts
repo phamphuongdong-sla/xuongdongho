@@ -285,6 +285,7 @@ export async function deleteExportVoucher(id: number) {
 export async function updateExportVoucher(
   id: number,
   data: {
+    code?: string;
     destinationUnitId?: number;
     voucherDate?: string;
     delivererName?: string;
@@ -297,130 +298,188 @@ export async function updateExportVoucher(
       notes?: string;
     }>;
   }
-) {
-  await requireAuth(['admin', 'kho']);
+): Promise<{ success: true; voucher: any } | { success: false; error: string }> {
+  try {
+    await requireAuth(['admin', 'kho']);
 
-  const khoVp = await prisma.unit.findFirst({
-    where: { OR: [{ code: 'KHO-VP' }, { type: 'Kho/Xưởng' }, { sortOrder: 0 }] },
-  });
-  if (!khoVp) throw new Error('Kho VP không tồn tại');
+    const khoVp = await prisma.unit.findFirst({
+      where: { OR: [{ code: 'KHO-VP' }, { type: 'Kho/Xưởng' }, { sortOrder: 0 }] },
+    });
+    if (!khoVp) return { success: false, error: 'Kho VP không tồn tại' };
 
-  const existing = await prisma.exportVoucher.findUnique({
-    where: { id },
-    include: { details: true },
-  });
-  if (!existing) throw new Error('Phiếu xuất không tồn tại');
+    const existing = await prisma.exportVoucher.findUnique({
+      where: { id },
+      include: { details: true },
+    });
+    if (!existing) return { success: false, error: 'Phiếu xuất không tồn tại' };
 
-  await prisma.$transaction(async (tx) => {
-    if (data.items && data.items.length > 0) {
-      // 1. Revert previous inventory movements
-      for (const d of existing.details) {
-        if (d.meterId) {
-          // Add back to Kho VP
-          await tx.inventory.updateMany({
-            where: { unitId: existing.unitId, meterId: d.meterId, status: d.status },
-            data: { quantity: { increment: d.quantity } },
-          });
-          // Decrement from previous destination unit
-          if (existing.destinationUnitId) {
-            await tx.inventory.updateMany({
-              where: { unitId: existing.destinationUnitId, meterId: d.meterId, status: d.status },
-              data: { quantity: { decrement: d.quantity } },
-            });
-          }
-        }
+    // Validate voucher code uniqueness if changed
+    if (data.code && data.code.trim() !== existing.code) {
+      const duplicate = await prisma.exportVoucher.findUnique({
+        where: { code: data.code.trim() },
+      });
+      if (duplicate) {
+        return { success: false, error: `Số phiếu "${data.code.trim()}" đã được sử dụng.` };
       }
+    }
 
-      // 2. Validate stock constraints for new items
+    await prisma.$transaction(async (tx) => {
+      let newTotalAmount = existing.totalAmount;
       const targetUnitId = data.destinationUnitId !== undefined ? data.destinationUnitId : existing.destinationUnitId;
-      for (const item of data.items) {
-        if (item.quantity <= 0) continue;
-        const currentInv = await tx.inventory.findFirst({
-          where: { unitId: khoVp.id, meterId: item.meterId, status: item.meterStatus },
-        });
-        const currentStock = currentInv?.quantity || 0;
-        if (item.quantity > currentStock) {
-          const meter = await tx.meter.findUnique({ where: { id: item.meterId } });
-          throw new Error(`Không đủ tồn kho tại Kho VP cho ${meter?.name} (${item.meterStatus}). Tồn: ${currentStock}, Yêu cầu: ${item.quantity}.`);
-        }
-      }
 
-      // 3. Delete old details and recreate
-      await tx.exportVoucherDetail.deleteMany({ where: { exportVoucherId: id } });
+      if (data.items && data.items.length > 0) {
+        newTotalAmount = 0;
 
-      for (const item of data.items) {
-        if (item.quantity <= 0) continue;
-
-        await tx.exportVoucherDetail.create({
-          data: {
-            exportVoucherId: id,
-            meterId: item.meterId,
-            quantity: item.quantity,
-            status: item.meterStatus,
-            notes: item.notes || 'Cấp phát cho đơn vị nhận',
-          },
-        });
-
-        // Decrement Kho VP
-        await tx.inventory.updateMany({
-          where: { unitId: khoVp.id, meterId: item.meterId, status: item.meterStatus },
-          data: { quantity: { decrement: item.quantity } },
-        });
-
-        // Increment destination unit
-        if (targetUnitId) {
-          const destInv = await tx.inventory.findFirst({
-            where: { unitId: targetUnitId, meterId: item.meterId, status: item.meterStatus },
+        // Helper function to safely adjust inventory with upsert
+        const adjustInv = async (unitId: number, meterId: number, status: string, delta: number) => {
+          if (delta === 0) return;
+          const inv = await tx.inventory.findFirst({
+            where: { unitId, meterId, status },
           });
-          if (destInv) {
+          if (inv) {
             await tx.inventory.update({
-              where: { id: destInv.id },
-              data: { quantity: { increment: item.quantity } },
+              where: { id: inv.id },
+              data: { quantity: { increment: delta } },
             });
           } else {
             await tx.inventory.create({
               data: {
-                unitId: targetUnitId,
-                meterId: item.meterId,
-                quantity: item.quantity,
-                status: item.meterStatus,
+                unitId,
+                meterId,
+                status,
+                quantity: Math.max(0, delta),
               },
             });
           }
+        };
+
+        // 1. Build maps of old vs new usage: key = `${meterId}_${status}`
+        const oldUsage = new Map<string, { meterId: number; status: string; quantity: number }>();
+        for (const d of existing.details) {
+          if (d.meterId) {
+            const key = `${d.meterId}_${d.status}`;
+            const current = oldUsage.get(key) || { meterId: d.meterId, status: d.status, quantity: 0 };
+            current.quantity += d.quantity;
+            oldUsage.set(key, current);
+          }
+        }
+
+        const newUsage = new Map<string, { meterId: number; status: string; quantity: number }>();
+        for (const item of data.items) {
+          if (item.quantity <= 0) continue;
+          const key = `${item.meterId}_${item.meterStatus}`;
+          const current = newUsage.get(key) || { meterId: item.meterId, status: item.meterStatus, quantity: 0 };
+          current.quantity += item.quantity;
+          newUsage.set(key, current);
+        }
+
+        const allKeys = new Set([...oldUsage.keys(), ...newUsage.keys()]);
+
+        // 2. Adjust Kho VP inventory based on net delta
+        for (const key of allKeys) {
+          const oldItem = oldUsage.get(key);
+          const newItem = newUsage.get(key);
+          const meterId = newItem?.meterId || oldItem!.meterId;
+          const status = newItem?.status || oldItem!.status;
+          const oldQ = oldItem?.quantity || 0;
+          const newQ = newItem?.quantity || 0;
+          const deltaExport = newQ - oldQ; // Positive = exporting more, Negative = returning stock
+
+          if (deltaExport > 0) {
+            // Exporting more: check if Kho VP has enough additional stock
+            const khoInv = await tx.inventory.findFirst({
+              where: { unitId: khoVp.id, meterId, status },
+            });
+            const availableStock = khoInv?.quantity || 0;
+            if (availableStock < deltaExport) {
+              const meter = await tx.meter.findUnique({ where: { id: meterId } });
+              throw new Error(
+                `Không đủ tồn kho bổ sung tại Kho VP cho ${meter?.name} (${status}). Yêu cầu xuất thêm: ${deltaExport}, tồn khả dụng: ${availableStock}.`
+              );
+            }
+            await adjustInv(khoVp.id, meterId, status, -deltaExport);
+          } else if (deltaExport < 0) {
+            // Exporting less: return difference to Kho VP
+            await adjustInv(khoVp.id, meterId, status, Math.abs(deltaExport));
+          }
+
+          // 3. Adjust destination unit
+          if (targetUnitId === existing.destinationUnitId) {
+            if (targetUnitId && deltaExport !== 0) {
+              await adjustInv(targetUnitId, meterId, status, deltaExport);
+            }
+          } else {
+            // Destination changed: remove all from old, add all to new
+            if (existing.destinationUnitId && oldQ > 0) {
+              await adjustInv(existing.destinationUnitId, meterId, status, -oldQ);
+            }
+            if (targetUnitId && newQ > 0) {
+              await adjustInv(targetUnitId, meterId, status, newQ);
+            }
+          }
+        }
+
+        // 4. Delete old details and insert new details with pricing
+        await tx.exportVoucherDetail.deleteMany({ where: { exportVoucherId: id } });
+
+        for (const item of data.items) {
+          if (item.quantity <= 0) continue;
+          const meter = await tx.meter.findUnique({ where: { id: item.meterId } });
+          const unitPrice = (item.meterStatus === 'new')
+            ? (meter?.unitPrice || 350000)
+            : (meter?.depreciationPrice || 120000);
+          const lineAmount = item.quantity * unitPrice;
+          newTotalAmount += lineAmount;
+
+          await tx.exportVoucherDetail.create({
+            data: {
+              exportVoucherId: id,
+              meterId: item.meterId,
+              quantity: item.quantity,
+              unitPrice,
+              lineAmount,
+              status: item.meterStatus,
+              notes: item.notes || 'Cấp phát cho đơn vị nhận',
+            },
+          });
         }
       }
-    }
 
-    // 4. Update voucher header
-    await tx.exportVoucher.update({
-      where: { id },
-      data: {
-        destinationUnitId: data.destinationUnitId !== undefined ? data.destinationUnitId : existing.destinationUnitId,
-        voucherDate: data.voucherDate ? new Date(data.voucherDate) : existing.voucherDate,
-        delivererName: data.delivererName !== undefined ? data.delivererName : existing.delivererName,
-        receiverName: data.receiverName !== undefined ? data.receiverName : existing.receiverName,
-        notes: data.notes !== undefined ? data.notes : existing.notes,
-      },
+      // 5. Update voucher header
+      await tx.exportVoucher.update({
+        where: { id },
+        data: {
+          code: data.code?.trim() || existing.code,
+          destinationUnitId: targetUnitId,
+          voucherDate: data.voucherDate ? new Date(data.voucherDate) : existing.voucherDate,
+          delivererName: data.delivererName !== undefined ? data.delivererName : existing.delivererName,
+          receiverName: data.receiverName !== undefined ? data.receiverName : existing.receiverName,
+          notes: data.notes !== undefined ? data.notes : existing.notes,
+          totalAmount: newTotalAmount,
+        },
+      });
     });
-  });
 
-  const updatedVoucher = await prisma.exportVoucher.findUnique({
-    where: { id },
-    include: {
-      destinationUnit: true,
-      details: {
-        include: {
-          meter: true,
+    const updatedVoucher = await prisma.exportVoucher.findUnique({
+      where: { id },
+      include: {
+        destinationUnit: true,
+        details: {
+          include: {
+            meter: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  safeRevalidatePath('/distribution');
-  safeRevalidatePath('/reports');
-  safeRevalidatePath('/unit-reports');
-  safeRevalidatePath('/');
-  return { success: true, voucher: updatedVoucher };
+    safeRevalidatePath('/distribution');
+    safeRevalidatePath('/reports');
+    safeRevalidatePath('/unit-reports');
+    safeRevalidatePath('/');
+    return { success: true, voucher: updatedVoucher };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Lỗi khi cập nhật phiếu xuất' };
+  }
 }
 
 export async function updateExportVoucherNotes(id: number, notes: string) {

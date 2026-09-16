@@ -66,6 +66,7 @@ export function UsedMetersClientView({
   // Active state for form
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingVoucher, setEditingVoucher] = useState<any | null>(null);
+  const [editCode, setEditCode] = useState<string>('');
   const [printData, setPrintData] = useState<any | null>(null);
 
   // Search & Filter
@@ -129,6 +130,7 @@ export function UsedMetersClientView({
 
   const handleOpenEditForm = (v: any) => {
     setEditingVoucher(v);
+    setEditCode(v.code || '');
     const unitId = v.sourceUnitId || branchUnits[0]?.id || 1;
     setSourceUnitId(unitId);
     setVoucherDate(v.voucherDate ? v.voucherDate.split('T')[0] : new Date().toISOString().split('T')[0]);
@@ -181,6 +183,7 @@ export function UsedMetersClientView({
       try {
         if (editingVoucher) {
           const res = await updateUsedMeterVoucher(editingVoucher.id, {
+            code: editCode.trim() || undefined,
             sourceUnitId: Number(sourceUnitId),
             voucherDate,
             delivererName,
@@ -194,7 +197,7 @@ export function UsedMetersClientView({
             })),
           });
           if (res.success) {
-            setMessage({ type: 'success', text: 'Cập nhật phiếu nhập kho đồng hồ cũ thành công!' });
+            setMessage({ type: 'success', text: `Cập nhật phiếu nhập kho ${editCode.trim() || editingVoucher.code} thành công!` });
             setIsFormOpen(false);
           }
         } else {
@@ -447,7 +450,23 @@ export function UsedMetersClientView({
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className={`grid grid-cols-1 ${editingVoucher ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
+                {editingVoucher && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Số Phiếu Nhập <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editCode}
+                      onChange={(e) => setEditCode(e.target.value)}
+                      placeholder="VD: PNK-C-2026-0001"
+                      className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 font-mono font-bold text-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Đơn Vị Chuyển Về <span className="text-red-500">*</span>

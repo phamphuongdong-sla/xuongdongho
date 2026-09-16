@@ -195,6 +195,7 @@ export async function createUsedMeterVoucher(data: {
 export async function updateUsedMeterVoucher(
   voucherId: number,
   data: {
+    code?: string;
     sourceUnitId?: number;
     voucherDate?: string;
     delivererName?: string;
@@ -216,6 +217,15 @@ export async function updateUsedMeterVoucher(
     include: { details: true },
   });
   if (!existing) throw new Error('Không tìm thấy phiếu nhập');
+
+  if (data.code && data.code.trim() !== existing.code) {
+    const duplicate = await prisma.importVoucher.findUnique({
+      where: { code: data.code.trim() },
+    });
+    if (duplicate) {
+      throw new Error(`Số phiếu "${data.code.trim()}" đã được sử dụng.`);
+    }
+  }
 
   await prisma.$transaction(async (tx) => {
     // 1. Revert previous inventory increments
@@ -277,6 +287,7 @@ export async function updateUsedMeterVoucher(
     await tx.importVoucher.update({
       where: { id: voucherId },
       data: {
+        code: data.code?.trim() || existing.code,
         sourceUnitId: data.sourceUnitId !== undefined ? data.sourceUnitId : existing.sourceUnitId,
         voucherDate: data.voucherDate ? new Date(data.voucherDate) : existing.voucherDate,
         delivererName: data.delivererName !== undefined ? data.delivererName : existing.delivererName,

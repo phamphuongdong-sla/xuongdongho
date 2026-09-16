@@ -117,6 +117,7 @@ export function DistributionClientView({
   // Full voucher edit modal state
   const [editingExportVoucher, setEditingExportVoucher] = useState<any | null>(null);
   const [editDestUnitId, setEditDestUnitId] = useState<number>(units[0]?.id || 1);
+  const [editCode, setEditCode] = useState<string>('');
   const [editVoucherDate, setEditVoucherDate] = useState<string>('');
   const [editCreator, setEditCreator] = useState<string>('Nguyễn Văn Tiến');
   const [editDeliverer, setEditDeliverer] = useState<string>('');
@@ -284,6 +285,7 @@ export function DistributionClientView({
     setEditingExportVoucher(v);
     const destId = v.destinationUnitId || units[0]?.id || 1;
     setEditDestUnitId(destId);
+    setEditCode(v.code || '');
     setEditVoucherDate(v.voucherDate ? new Date(v.voucherDate).toISOString().split('T')[0] : '');
     const targetUnit = units.find(u => u.id === destId);
     const defaultUnitName = targetUnit?.name || 'Đại diện đơn vị';
@@ -313,6 +315,7 @@ export function DistributionClientView({
     setEditError(null);
     try {
       const res = await updateExportVoucher(editingExportVoucher.id, {
+        code: editCode.trim() || undefined,
         destinationUnitId: editDestUnitId,
         voucherDate: editVoucherDate || undefined,
         delivererName: editDeliverer,
@@ -320,6 +323,14 @@ export function DistributionClientView({
         notes: editNotes,
         items: editItems.filter(i => i.quantity > 0),
       });
+
+      if (!res.success) {
+        setEditError(res.error || 'Lỗi khi cập nhật phiếu xuất');
+        setMessage({ type: 'error', text: res.error || 'Lỗi khi cập nhật phiếu xuất' });
+        setLoading(false);
+        return;
+      }
+
       if (typeof window !== 'undefined') {
         localStorage.setItem('wm_default_dist_creator', editCreator);
         localStorage.setItem(`wm_default_dist_deliverer_${editDestUnitId}`, editDeliverer);
@@ -335,6 +346,7 @@ export function DistributionClientView({
           if (v.id === editingExportVoucher.id) {
             return {
               ...v,
+              code: editCode.trim() || v.code,
               destinationUnitId: editDestUnitId,
               destinationUnit: targetUnit || v.destinationUnit,
               voucherDate: editVoucherDate ? new Date(editVoucherDate) : v.voucherDate,
@@ -347,7 +359,7 @@ export function DistributionClientView({
         }));
       }
 
-      setMessage({ type: 'success', text: `Đã cập nhật thành công phiếu ${editingExportVoucher.code} và điều chỉnh tồn kho!` });
+      setMessage({ type: 'success', text: `Đã cập nhật thành công phiếu ${editCode.trim() || editingExportVoucher.code} và điều chỉnh tồn kho!` });
       setEditingExportVoucher(null);
       router.refresh();
     } catch (err: any) {
@@ -863,7 +875,19 @@ export function DistributionClientView({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Số Phiếu Xuất (*)</label>
+                  <input
+                    type="text"
+                    value={editCode}
+                    onChange={(e) => setEditCode(e.target.value)}
+                    placeholder="VD: PXK-2026-M01-001"
+                    className="w-full border border-slate-200 rounded-lg p-2 bg-white font-mono font-bold text-brand-700 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    required
+                  />
+                </div>
+
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Đơn Vị Nhận (*)</label>
                   <select

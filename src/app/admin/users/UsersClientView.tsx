@@ -47,8 +47,14 @@ import {
   Tag,
   MapPin,
   Hash,
-  Building
+  Building,
+  Database,
+  Download,
+  Upload,
+  RefreshCw,
+  FileJson,
 } from 'lucide-react';
+import { exportSystemBackup, restoreSystemBackup } from '@/actions/backup';
 
 interface Unit {
   id: number;
@@ -169,9 +175,17 @@ export function UsersClientView({
   const isKhoRole = currentUser?.role === 'kho';
 
   // Navigation tabs - if kho role, default to 'employees' tab
-  const [activeTab, setActiveTab] = useState<'users' | 'employees' | 'units' | 'meters' | 'spareParts'>(
+  const [activeTab, setActiveTab] = useState<'users' | 'employees' | 'units' | 'meters' | 'spareParts' | 'backup'>(
     isKhoRole ? 'employees' : 'users'
   );
+
+  // Backup & Restore state
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [restorePreview, setRestorePreview] = useState<any | null>(null);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [restoreSuccess, setRestoreSuccess] = useState<string | null>(null);
 
   // Units state (Danh mục đơn vị)
   const [unitList, setUnitList] = useState<Unit[]>(initialUnits && initialUnits.length > 0 ? initialUnits : units);
@@ -687,6 +701,81 @@ export function UsersClientView({
       return a.code.localeCompare(b.code);
     });
 
+  const handleDownloadBackup = async () => {
+    setBackupLoading(true);
+    try {
+      const data = await exportSystemBackup();
+      const dateStr = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      const filename = `sowasuco_backup_${dateStr}.json`;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setMessage({ type: 'success', text: `Đã tạo và tải xuống bản sao lưu dữ liệu thành công (${filename})!` });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Lỗi khi tạo bản sao lưu dữ liệu' });
+    } finally {
+      setBackupLoading(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRestoreError(null);
+    setRestoreSuccess(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setRestoreFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (!json.version || !json.data) {
+          setRestoreError('Tệp không đúng cấu trúc bản sao lưu hệ thống SOWASUCO WM (thiếu version hoặc data).');
+          setRestorePreview(null);
+          return;
+        }
+        setRestorePreview(json);
+      } catch {
+        setRestoreError('Không thể đọc tệp JSON. Vui lòng chọn tệp tin hợp lệ.');
+        setRestorePreview(null);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleExecuteRestore = async () => {
+    if (!restorePreview) return;
+    if (!confirm('CẢNH BÁO QUAN TRỌNG:\n\nQuá trình khôi phục sẽ thay thế toàn bộ dữ liệu hiện tại bằng dữ liệu từ tệp sao lưu này.\n\nBạn có chắc chắn muốn tiến hành khôi phục ngay không?')) {
+      return;
+    }
+    setRestoreLoading(true);
+    setRestoreError(null);
+    setRestoreSuccess(null);
+    try {
+      const res = await restoreSystemBackup(restorePreview);
+      if (res.success) {
+        setRestoreSuccess(res.message);
+        setMessage({ type: 'success', text: res.message });
+        setRestorePreview(null);
+        setRestoreFile(null);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        setRestoreError((res as any).error || 'Lỗi khi khôi phục dữ liệu');
+      }
+    } catch (err: any) {
+      setRestoreError(err.message || 'Lỗi khi khôi phục dữ liệu');
+    } finally {
+      setRestoreLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Alert Banner */}
@@ -779,6 +868,18 @@ export function UsersClientView({
             >
               <Boxes className="w-4 h-4 text-amber-600" />
               5. Danh Mục Vật Tư Linh Kiện ({spareParts.length} SKU)
+            </button>
+
+            <button
+              onClick={() => setActiveTab('backup')}
+              className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all ${
+                activeTab === 'backup'
+                  ? 'border-purple-600 text-purple-700 bg-purple-50/40 rounded-t-lg'
+                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-t-lg'
+              }`}
+            >
+              <Database className="w-4 h-4 text-purple-600" />
+              6. Sao Lưu & Khôi Phục Dữ Liệu
             </button>
           </>
         )}
@@ -1433,6 +1534,212 @@ export function UsersClientView({
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* 6. TAB: SAO LƯU & KHÔI PHỤC DỮ LIỆU */}
+      {/* ==================================================================== */}
+      {activeTab === 'backup' && !isKhoRole && (
+        <div className="space-y-6">
+          {/* Card 1: Sao Lưu Dữ Liệu */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                    <Database className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900">
+                      1. Sao Lưu Toàn Bộ Dữ Liệu Hệ Thống (Export Backup)
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      Tạo tệp tin JSON độc lập chứa toàn bộ cấu trúc dữ liệu, danh mục, tồn kho và lịch sử phiếu nhập xuất.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleDownloadBackup}
+                disabled={backupLoading}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50"
+              >
+                {backupLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Đang trích xuất dữ liệu...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Tải Xuống Bản Sao Lưu (.json)</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="p-6 bg-slate-50/50 space-y-4">
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Thống kê phạm vi dữ liệu trong bản sao lưu:
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-center">
+                  <span className="text-[11px] font-semibold text-slate-500 block">Đơn vị thành viên</span>
+                  <span className="text-lg font-extrabold text-slate-900 font-mono">{unitList.length}</span>
+                </div>
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-center">
+                  <span className="text-[11px] font-semibold text-slate-500 block">Tài khoản quản trị</span>
+                  <span className="text-lg font-extrabold text-slate-900 font-mono">{users.length}</span>
+                </div>
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-center">
+                  <span className="text-[11px] font-semibold text-slate-500 block">Cán bộ nhân viên</span>
+                  <span className="text-lg font-extrabold text-slate-900 font-mono">{employees.length}</span>
+                </div>
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-center">
+                  <span className="text-[11px] font-semibold text-slate-500 block">SKU Đồng hồ nước</span>
+                  <span className="text-lg font-extrabold text-emerald-700 font-mono">{meters.length}</span>
+                </div>
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-center">
+                  <span className="text-[11px] font-semibold text-slate-500 block">SKU Vật tư linh kiện</span>
+                  <span className="text-lg font-extrabold text-amber-700 font-mono">{spareParts.length}</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-500 italic">
+                * Bản sao lưu bao gồm toàn bộ các phiếu nhập kho hợp đồng, phiếu xuất 12 chi nhánh, phiếu nhập cũ, phiếu sửa chữa, tồn kho và các thiết lập số dư đầu kỳ.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 2: Khôi Phục Dữ Liệu */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">
+                    2. Khôi Phục Dữ Liệu Từ Tệp Sao Lưu (Import Restore)
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Chọn tệp tin sao lưu (.json) của hệ thống SOWASUCO WM để phục hồi trạng thái cơ sở dữ liệu.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {restoreError && (
+                <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                  <span>{restoreError}</span>
+                </div>
+              )}
+
+              {restoreSuccess && (
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>{restoreSuccess}</span>
+                </div>
+              )}
+
+              <div className="border-2 border-dashed border-slate-300 hover:border-purple-400 transition-colors rounded-2xl p-6 text-center bg-slate-50/50">
+                <FileJson className="w-10 h-10 text-purple-600 mx-auto mb-2" />
+                <label className="block text-sm font-bold text-slate-800 mb-1 cursor-pointer">
+                  <span>Chọn hoặc kéo thả tệp sao lưu JSON vào đây</span>
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-slate-500">Định dạng chấp nhận: .json (tạo từ chức năng sao lưu của hệ thống)</p>
+                {restoreFile && (
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 text-xs font-mono font-bold">
+                    <span>{restoreFile.name}</span>
+                    <span className="text-slate-400 font-sans font-normal">({(restoreFile.size / 1024).toFixed(1)} KB)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Preview card if valid file parsed */}
+              {restorePreview && (
+                <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-5 space-y-4">
+                  <div className="flex items-center justify-between border-b border-amber-200/80 pb-3">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded tracking-wider">
+                        Thông Tin Tệp Sao Lưu
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900 mt-1">
+                        Ngày tạo bản sao lưu: <span className="font-mono text-amber-900">{new Date(restorePreview.exportDate).toLocaleString('vi-VN')}</span>
+                      </h4>
+                    </div>
+                    <span className="text-xs font-mono text-slate-600 font-semibold">Phiên bản: {restorePreview.version}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-amber-100">
+                      <span className="text-slate-500 block text-[11px]">Đơn vị:</span>
+                      <strong className="text-slate-900 font-mono">{restorePreview.summary?.units ?? 0}</strong>
+                    </div>
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-amber-100">
+                      <span className="text-slate-500 block text-[11px]">Đồng hồ & Linh kiện:</span>
+                      <strong className="text-slate-900 font-mono">{(restorePreview.summary?.meters ?? 0) + (restorePreview.summary?.spareParts ?? 0)} SKU</strong>
+                    </div>
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-amber-100">
+                      <span className="text-slate-500 block text-[11px]">Phiếu nhập kho:</span>
+                      <strong className="text-slate-900 font-mono">{restorePreview.summary?.importVouchers ?? 0} phiếu</strong>
+                    </div>
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-amber-100">
+                      <span className="text-slate-500 block text-[11px]">Phiếu xuất kho:</span>
+                      <strong className="text-slate-900 font-mono">{restorePreview.summary?.exportVouchers ?? 0} phiếu</strong>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-red-50/80 border border-red-200 rounded-lg text-red-700 text-xs flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Cảnh báo quan trọng:</strong> Hành động này sẽ thay thế toàn bộ dữ liệu hiện tại trong cơ sở dữ liệu và tự động làm mới trang sau khi hoàn tất.
+                    </span>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRestorePreview(null);
+                        setRestoreFile(null);
+                      }}
+                      className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-white"
+                    >
+                      Hủy Bỏ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleExecuteRestore}
+                      disabled={restoreLoading}
+                      className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs disabled:opacity-50"
+                    >
+                      {restoreLoading ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Đang khôi phục dữ liệu...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Bắt Đầu Khôi Phục Dữ Liệu Ngay</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

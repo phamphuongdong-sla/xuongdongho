@@ -410,6 +410,7 @@ export async function deleteImportVoucher(id: number) {
 export async function updateImportVoucher(
   id: number,
   data: {
+    code?: string;
     voucherDate?: string;
     notes?: string;
     customerDeptName?: string;
@@ -434,6 +435,15 @@ export async function updateImportVoucher(
     include: { details: true },
   });
   if (!existing) throw new Error('Phiếu nhập không tồn tại');
+
+  if (data.code && data.code.trim() !== existing.code) {
+    const duplicate = await prisma.importVoucher.findUnique({
+      where: { code: data.code.trim() },
+    });
+    if (duplicate) {
+      throw new Error(`Số phiếu "${data.code.trim()}" đã được sử dụng.`);
+    }
+  }
 
   await prisma.$transaction(async (tx) => {
     if (data.items && data.items.length > 0) {
@@ -569,6 +579,7 @@ export async function updateImportVoucher(
     await tx.importVoucher.update({
       where: { id },
       data: {
+        code: data.code?.trim() || existing.code,
         voucherDate: data.voucherDate ? new Date(data.voucherDate) : existing.voucherDate,
         notes: data.notes !== undefined ? data.notes : existing.notes,
         delivererName: targetDeliverer,

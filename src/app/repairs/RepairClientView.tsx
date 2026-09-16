@@ -170,6 +170,7 @@ export function RepairClientView({
 
   // Edit notes state
   const [editingVoucherId, setEditingVoucherId] = useState<number | null>(null);
+  const [editingCode, setEditingCode] = useState<string>('');
   const [editingNotes, setEditingNotes] = useState<string>('');
 
   const [loading, setLoading] = useState(false);
@@ -281,7 +282,7 @@ export function RepairClientView({
       }
 
       const res = editingVoucherId
-        ? await updateRepairVoucher({ id: editingVoucherId, ...repairData })
+        ? await updateRepairVoucher({ id: editingVoucherId, code: editingCode.trim() || undefined, ...repairData })
         : await submitRepairVoucher(repairData);
 
       if (!res.success) {
@@ -302,6 +303,7 @@ export function RepairClientView({
             v.id === editingVoucherId
               ? {
                   ...v,
+                  code: res.code || editingCode.trim() || v.code,
                   inputQuantity: inputQty,
                   completedQuantity: completedQty,
                   scrappedQuantity: scrappedQty,
@@ -374,6 +376,7 @@ export function RepairClientView({
     }
     setActiveTab('repair');
     setEditingVoucherId(voucher.id);
+    setEditingCode(voucher.code || '');
     setSelectedMeterId(voucher.meterId);
     setInputQty(voucher.inputQuantity);
     setCompletedQty(voucher.completedQuantity);
@@ -552,6 +555,28 @@ export function RepairClientView({
 
           {/* Section 1: Meter selection & quantities */}
           <div className="space-y-4">
+            {editingVoucherId && (
+              <div className="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-amber-700" />
+                    Số Phiếu Sửa Chữa (*)
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCode}
+                    onChange={(e) => setEditingCode(e.target.value)}
+                    placeholder="VD: PSC-2026-0001"
+                    className="w-full sm:w-72 text-xs border border-amber-300 rounded-lg p-2 font-mono font-bold text-amber-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    required
+                  />
+                </div>
+                <div className="text-[11px] text-amber-700 italic">
+                  Bạn có thể đổi số phiếu để khớp hồ sơ chứng từ của xưởng.
+                </div>
+              </div>
+            )}
+
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="text-xs font-semibold text-slate-700">

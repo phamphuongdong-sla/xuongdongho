@@ -144,6 +144,7 @@ export function ContractsClientView({
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingImportVoucher, setEditingImportVoucher] = useState<any | null>(null);
+  const [editingImportCode, setEditingImportCode] = useState<string>('');
   const [editingVoucherDate, setEditingVoucherDate] = useState<string>('');
 
   // 3 Cán bộ ký phiếu theo quy định
@@ -383,6 +384,7 @@ export function ContractsClientView({
   const handleOpenEditImport = (imp: any) => {
     setModalError(null);
     setEditingImportVoucher(imp);
+    setEditingImportCode(imp.code || '');
     setEditingVoucherDate(imp.voucherDate ? new Date(imp.voucherDate).toISOString().split('T')[0] : '');
     setImportNotes(imp.notes || '');
     setCustomerDeptName(imp.delivererName || imp.customerDeptName || 'Đại diện bên giao hàng');
@@ -411,6 +413,7 @@ export function ContractsClientView({
     try {
       if (editingImportVoucher) {
         const updateRes = await updateImportVoucher(editingImportVoucher.id, {
+          code: editingImportCode.trim() || undefined,
           voucherDate: editingVoucherDate || undefined,
           notes: importNotes,
           customerDeptName,
@@ -432,6 +435,7 @@ export function ContractsClientView({
             if (v.id === editingImportVoucher.id) {
               return {
                 ...v,
+                code: editingImportCode.trim() || v.code,
                 voucherDate: editingVoucherDate ? new Date(editingVoucherDate) : v.voucherDate,
                 notes: importNotes,
                 delivererName: customerDeptName,
@@ -446,7 +450,7 @@ export function ContractsClientView({
 
         setMessage({
           type: 'success',
-          text: `Đã cập nhật thành công phiếu nhập ${editingImportVoucher.code} và đồng bộ tồn kho!`,
+          text: `Đã cập nhật thành công phiếu nhập ${editingImportCode.trim() || editingImportVoucher.code} và đồng bộ tồn kho!`,
         });
         setEditingImportVoucher(null);
         setShowImportModal(false);
@@ -1152,15 +1156,12 @@ export function ContractsClientView({
 
               {/* Linked Contract & Batch Selectors (or Info when editing) */}
               {editingImportVoucher ? (
-                <div className="bg-brand-50/70 p-3.5 rounded-xl border border-brand-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-brand-700 bg-brand-100/70 px-2 py-0.5 rounded tracking-wider">
+                <div className="bg-brand-50/70 p-3.5 rounded-xl border border-brand-200 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="text-[10px] uppercase font-bold text-brand-700 bg-brand-100/70 px-2 py-0.5 rounded tracking-wider w-fit">
                       Đang chỉnh sửa phiếu nhập
                     </span>
-                    <p className="text-sm font-bold text-slate-900 mt-1">
-                      Mã phiếu: <span className="font-mono text-brand-700">{editingImportVoucher.code}</span>
-                    </p>
-                    <p className="text-xs text-slate-600 mt-0.5">
+                    <p className="text-xs text-slate-600">
                       Hợp đồng: <strong className="text-slate-800">{editingImportVoucher.contract?.contractNumber}</strong>
                       {editingImportVoucher.batch && (
                         <span> — Đợt: <strong className="text-slate-800">{editingImportVoucher.batch.batchName}</strong></span>
@@ -1168,18 +1169,35 @@ export function ContractsClientView({
                     </p>
                   </div>
 
-                  <div className="w-full sm:w-auto bg-white p-2.5 rounded-lg border border-brand-200">
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-brand-600" />
-                      Ngày Lập Phiếu
-                    </label>
-                    <input
-                      type="date"
-                      value={editingVoucherDate}
-                      onChange={(e) => setEditingVoucherDate(e.target.value)}
-                      className="w-full sm:w-44 text-xs border border-slate-300 rounded-md p-1.5 font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                      required
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-3 rounded-lg border border-brand-200">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                        <FileText className="w-3.5 h-3.5 text-brand-600" />
+                        Số Phiếu Nhập (*)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingImportCode}
+                        onChange={(e) => setEditingImportCode(e.target.value)}
+                        placeholder="VD: PNK-2026-0001"
+                        className="w-full text-xs border border-slate-300 rounded-md p-1.5 font-mono font-bold text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-brand-600" />
+                        Ngày Lập Phiếu
+                      </label>
+                      <input
+                        type="date"
+                        value={editingVoucherDate}
+                        onChange={(e) => setEditingVoucherDate(e.target.value)}
+                        className="w-full text-xs border border-slate-300 rounded-md p-1.5 font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (
