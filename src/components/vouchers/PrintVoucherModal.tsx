@@ -382,11 +382,6 @@ export function PrintVoucherModal({
             font-family: "Times New Roman", Times, Georgia, serif !important;
           }
 
-          /* Ẩn triệt để các phần tử trang web ngoài modal */
-          body > *:not(.fixed) {
-            display: none !important;
-          }
-
           body * {
             visibility: hidden !important;
           }
